@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Payment</title>
+	<link rel="stylesheet" href="{{ url_for('static', filename='css.css') }}">
+	<link rel="icon" href="{{ url_for('static', filename='favicon-96x96.png') }}" type="image/x-icon">
+	<link rel="shortcut icon" href="{{ url_for('static', filename='favicon-96x96.png') }}" type="image/x-icon">
+	<script src="{{ url_for('static', filename='jquery-3.5.0.min.js') }}" type="text/javascript"></script>
+</head>
+<body>
+	<div id="payment">
+		<div id="roominsert">
+			<form action="/payment" id="rooms" method="POST">
+				<label for="roomsinfo">Сметка за плащане на гости в стая :</label>
+				<input type="text" name="roomsinfo">
+				<input type="submit" value="Зареди">
+			</form>
+		</div>
+		<div id="paymentshow">
+			{% if roomname %}
+				<table class="activenast" id="prihodi_po_grupi">
+					<tr class="tableinfo">
+						<th class="tabletd">Услуга</th>
+						<th class="tabletd">За Дата</th>
+						<th class="tabletd">Сума</th>
+					</tr>
+					{% for d in room_payment %}
+						<tr>
+							{% if d[0] in kasa_name %}
+								<td id="detail" class="tabletd info2" data-id="/payment/{{roomname}}/{{d[0]}}">{{ d[0] }} <span class="small">детайли</span></a></td>
+							{% else %}
+								<td class="tabletd">{{ d[0] }}</td>
+							{% endif %}
+							<td class="tabletd">{{ d[1].strftime("%d.%m.%Y") }}</td>
+							<td class="count-me2">{{ "%.2f"|format(d[2]|float) }}</td>
+						</tr>
+					{% endfor %}
+				</table>
+			{% endif %}
+			<br />
+			<table class="activenast" id="ts_smetka_detail2">
+					<tr class="tableinfo">
+						<th class="tabletd">Услуга</th>
+						<th class="tabletd">За Дата</th>
+						<th class="tabletd">Сума</th>
+					</tr>
+			</table>
+		</div>
+	</div>
+	<script>
+	var tds = document.getElementById('prihodi_po_grupi').getElementsByTagName('td')
+	var tr = document.getElementById('prihodi_po_grupi').getElementsByTagName('tr')
+	var sum2 = 0
+	for (var i = 0; i < tds.length; i++) {
+	  if (tds[i].className == 'count-me2') {
+	    sum2 += isNaN(tds[i].innerHTML) ? 0 : parseFloat(tds[i].innerHTML)
+	  }
+	}
+	document.getElementById('prihodi_po_grupi').innerHTML +=
+	            '<table class="result"><tr><td>Всичко</td><td></td><td>' + sum2.toFixed(2) + '</td></tr></table>';
+	</script>
+	<script>
+	  $(function () {
+   		$('.info2').one('click', function () {
+	      const id = $(this).data('id')
+	      const table = document.getElementById("ts_smetka_detail2");
+	      url = 'http://' + window.location.hostname + ':5000' + id
+		  console.log(url)
+      $.ajax({
+        url: url,
+        type: 'GET',
+        dataType: "json",
+        success: function (response) {
+          for (let k in response) {
+          	let valaing = response[k]
+
+          	let row = table.insertRow(-1);
+
+          	let cell1 = row.insertCell(0);
+          	cell1.className = "tabletd";
+          	let cell2 = row.insertCell(1);
+          	cell1.className = "tabletd";
+          	let cell3 = row.insertCell(2);
+          	cell1.className = "tabletd";
+
+          	cell1.innerHTML = valaing['name'];
+          	cell2.innerHTML = valaing['datatime'].replace(/(\d+)-(\d+)-(\d+) (\d+):(\d+)/, "$3.$2.$1 $4:$5");
+          	cell3.innerHTML = valaing['price'];
+          }
+        },
+        error: function (error) {
+          alert(url)
+        }
+      })
+      $('#ts_smetka_detail2').css('display', 'block')
+    })
+  });
+	</script>
+	
+</body>
+</html>

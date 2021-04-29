@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+
+{% block body %}
+	<script>
+		document.getElementById("generalform").style.display="none";
+	</script>
+	<h3>Списък с платените услуги: {{ strptime(f_data, "%Y-%m-%d").strftime("%d.%m.%Y") }} до {{ strptime(l_data, "%Y-%m-%d").strftime("%d.%m.%Y") }}</h3>
+	<br />
+	<table class="activenast">
+		<tr class="tableinfo">
+			<th>Име</th>
+			<th>Сума Бруто</th>
+			<th>Сума Нето</th>
+		{% for d in fdb_reservations_paid %}
+			<tr>
+				<td class="tabletd">{{ d[0] }}</td>
+				<td class="tabletd">{{ "%.2f"|format(d[1]|float) }}</td>
+				<td class="tabletd">{{ "%.2f"|format(d[2]|float) }}</td>
+			</tr>
+		{% endfor %}
+	</table>
+	<h3>Списък с начислените услуги: {{ strptime(f_data, "%Y-%m-%d").strftime("%d.%m.%Y") }} до {{ strptime(l_data, "%Y-%m-%d").strftime("%d.%m.%Y") }}</h3>
+	<br />
+	<table class="activenast">
+		<tr class="tableinfo">
+			<th>Име</th>
+			<th>Сума Бруто</th>
+			<th>Сума Нето</th>
+		{% for d in fdb_reservations_accured %}
+			<tr>
+				<td class="tabletd">{{ d[0] }}</td>
+				<td class="tabletd">{{ "%.2f"|format(d[1]|float) }}</td>
+				<td class="tabletd">{{ "%.2f"|format(d[2]|float) }}</td>
+			</tr>
+		{% endfor %}
+	</table>
+{% endblock %}

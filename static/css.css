@@ -1,0 +1,261 @@
+body {
+	min-width: 630px;
+}
+
+#container {
+	padding-left: 200px;
+	padding-right: 190px;
+}
+
+#container .column {
+	position: relative;
+	float: left;
+}
+
+#center {
+	padding: 10px 20px;
+	width: 100%;
+}
+
+#left {
+	width: 180px;
+	padding: 0 10px;
+	right: 240px;
+	margin-left: -100%;
+	height: 100vh;
+}
+
+#footer {
+	clear: both;
+}
+
+/* IE hack */
+* html #left {
+	left: 150px;
+}
+
+/* Make the columns the same height as each other */
+#container {
+	overflow: hidden;
+}
+
+#container .column {
+	padding-bottom: 1001em;
+	margin-bottom: -1000em;
+}
+
+/* Fix for the footer */
+* html body {
+	overflow: hidden;
+}
+
+* html #footer-wrapper {
+	float: left;
+	position: relative;
+	width: 100%;
+	padding-bottom: 10010px;
+	margin-bottom: -10000px;
+	background: #fff;
+}
+
+/* Aesthetics */
+body {
+	margin: 0;
+	padding: 0;
+	font-family:Sans-serif;
+	line-height: 1.5em;
+}
+
+p {
+	color: #555;
+}
+
+nav ul {
+	list-style-type: none;
+	margin: 0;
+	padding: 0;
+}
+
+nav ul a {
+	color: darkgreen;
+	text-decoration: none;
+}
+
+#header, #footer {
+	font-size: large;
+	padding: 0.3em;
+	letter-spacing: 3px;
+	background: #BCCE98;
+}
+
+#footer{
+	position: fixed;
+	bottom: 0;
+	width:100%;
+}
+
+#left {
+	background: #DAE9BC;
+}
+
+#center {
+	background: #fff;
+}
+
+#container .column {
+	padding-top: 1em;
+}
+
+/* table's and other format */
+
+.activenast {
+	width: 100%;
+	border-collapse: collapse;
+}
+
+.activenast td, th {
+	border: 1px solid #ddd;
+	padding: 5px;
+}
+
+.tableinfo {
+	background-color: bisque;
+	text-align: left;
+}
+
+.info {
+	text-decoration: underline;
+	cursor: pointer;
+}
+
+/* modal dialog */
+
+.modal {
+	display: none;
+	position: fixed;
+	top: 0;
+	left: 0;
+	z-index: 1;
+	width: 100%;
+	height: 100%;
+	overflow: auto;
+	background-color: rgba(0,0,0,0.6);
+}
+
+.closd {
+	float: right;
+	color: #aaa;
+	font-weight: bold;
+	font-size: 28px;
+}
+
+.closd:hover,
+.closd:focus {
+  color: black;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.modal-content {
+	background-color: #fefefe;
+	margin: 15% auto;
+	padding: 25px;
+	width: 40%;
+	background: 1px solid black;
+}
+
+#payment {
+	width: 50%;
+	margin: 15px auto;
+	color: black;
+	border: 1px solid black;
+}
+
+#roominsert {
+	background-color: #c0c0c0;
+	width: 100%;
+}
+
+.atable {
+	color: black;
+}
+
+.small {
+	font-size:xx-small;
+}
+
+#detail {
+	text-decoration: underline;
+	cursor: pointer;
+}
+
+#ts_smetka_detail2 {
+	width: 100%;
+}
+
+#ts_smetka_detail2 td {
+	width: auto;
+}
+
+.tabletd {
+	width: 330px;
+}
+
+#result {
+	overflow: auto;
+}
+
+.fakinfo {
+	cursor: pointer; 
+	text-decoration: underline;
+}
+
+#login-div {
+	position: absolute;
+	top: calc(20% - 10%);
+	left: 50%;
+	-webkit-transform: translate(-50%, -50%);
+	width: 50%;
+	z-index: 5;
+	-webkit-transition: all .3s ease;
+}
+
+.form-css {
+	border: 0;
+	outline: none;
+	box-shadow: none;
+	display: block;
+	height: 30px;
+	line-height: 30px;
+	padding: 8px 15px;
+	border-bottom: 1px solid #000;
+	width: 100%;
+	font-size: 24px;
+}
+
+.submit-btn {
+	background-color: rgba(0,0,0,0.4);
+	color: rgba(256,256,256,0.7);
+	border:0;
+	border-radius: 15px;
+	display: block;
+	margin: 15px auto; 
+	padding: 15px 45px;
+	width: 100%;
+	font-size: 13px;
+	font-weight: bold;
+	cursor: pointer;
+	opacity: 1;
+	visibility: visible;
+	-webkit-transition: all .3s ease;
+}
+
+.form-holder {
+	border-radius: 15px;
+	background-color: #fff;
+	overflow: hidden;
+	margin-top: 5px;
+	opacity: 1;
+	visibility: visible;
+	-webkit-transition: all .3s ease;
+}
