@@ -280,6 +280,7 @@ nav ul a {
 	padding: 20px;
 	font-size: 150%;
 	height: 150px;
+	text-align: center;
 }
 
 .info_all_center {
@@ -293,5 +294,5 @@ nav ul a {
 	width: 200px;
 	height: 50px;
 	margin: auto;
-	padding: 10px;
+	padding-top: 25px;
 }

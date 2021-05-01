@@ -190,7 +190,8 @@ def reservations():
             f_data = request.form['fdata']
             l_data = request.form['ldata']
 
-            dates = datetime.strptime(l_data, "%Y-%m-%d") - datetime.strptime(f_data, "%Y-%m-%d")
+            dates = datetime.strptime(
+                l_data, "%Y-%m-%d") - datetime.strptime(f_data, "%Y-%m-%d")
             for i in range(dates.days + 1):
                 day = datetime.strptime(f_data, "%Y-%m-%d") + timedelta(days=i)
                 for l in con_to_firebird(q, (str(day)[:-9], str(day)[:-9])):
@@ -271,8 +272,10 @@ def usls():
                 '''
             f_data = request.form['fdata']
             l_data = request.form['ldata']
-            fdb_reservations_paid = con_to_firebird(query_paid, (f_data, l_data, ))
-            fdb_reservations_accured = con_to_firebird(query_accrued, (f_data, l_data, ))
+            fdb_reservations_paid = con_to_firebird(
+                query_paid, (f_data, l_data, ))
+            fdb_reservations_accured = con_to_firebird(
+                query_accrued, (f_data, l_data, ))
             return render_template('usl.html', f_data=f_data, l_data=l_data,
                                    fdb_reservations_paid=fdb_reservations_paid,
                                    fdb_reservations_accured=fdb_reservations_accured, title="услуги", **context)
@@ -395,7 +398,8 @@ def paymnet_id(room_name, kasa):
             }
             return r
 
-        ts_smetka_el = con_to_firebird(query_ts_smetka_el, (room_name.upper(), kasa,))
+        ts_smetka_el = con_to_firebird(
+            query_ts_smetka_el, (room_name.upper(), kasa,))
         data = []
         for i in ts_smetka_el:
             data.append(json_format(
@@ -497,19 +501,59 @@ def fak_detail(id):
 
 @app.route('/housekeeping', methods=['GET'])
 def housekeeping():
-    context = {}
-    q = """
+    active_people_and_room = """
     SELECT COUNT(DISTINCT(NAST.room_id)) AS ROOM, COUNT(NAST.ROOM_ID) AS PEOPLE
     FROM ACTIVE_NAST
     INNER JOIN NAST ON NAST.ID = ACTIVE_NAST.nast_id
     where NAST.CHECK_IN_DATE <= current_date and
-    dateadd(NAST.DAYS - 1 day to NAST.CHECK_IN_DATE) >= current_date and
+    dateadd(NAST.DAYS day to NAST.CHECK_IN_DATE) >= current_date and
     coalesce(NAST.LAST_OPR_TYPE, 1) in (1, 2, 8, 23, 202) and
     NAST.IS_DELETED = '0' and
     NAST.DOGOVOR_ID is not null
     """
-    room = con_to_firebird2(q)
-    return render_template('housekeeping.html', room=room[0], today=datetime.now())
+    expected_room_and_people = """
+    SELECT count(distinct NAST.room_id) AS ROOM, count(NAST.ROOM_ID) AS PEOPLE
+    FROM nast
+    where NAST.CHECK_IN_DATE = current_date and
+    coalesce(NAST.LAST_OPR_TYPE, 1) in (1, 2, 8, 23, 202) and
+    NAST.IS_DELETED = '0' and
+    NAST.DOGOVOR_ID is not null
+    and not exists(select active_nast.nast_id from active_nast where nast.id = active_nast.nast_id)
+    """
+    expected_out_room_and_people = """
+    SELECT COUNT(DISTINCT(NAST.room_id)) AS ROOM, COUNT(NAST.ROOM_ID) AS PEOPLE
+    FROM ACTIVE_NAST
+    INNER JOIN NAST ON NAST.ID = ACTIVE_NAST.nast_id
+    where dateadd(NAST.DAYS day to NAST.CHECK_IN_DATE) = current_date and
+    coalesce(NAST.LAST_OPR_TYPE, 1) in (1, 2, 8, 23, 202) and
+    NAST.IS_DELETED = '0' and
+    NAST.DOGOVOR_ID is not null
+    """
+    out_of_order = """
+    SELECT COUNT(DISTINCT(NAST.room_id)) AS ROOM
+    FROM NAST
+    where NAST.CHECK_IN_DATE <= current_date and
+    dateadd(NAST.DAYS day to NAST.CHECK_IN_DATE) >= current_date and
+    coalesce(NAST.LAST_OPR_TYPE, 1) in (1, 2, 8, 23, 202) and
+    NAST.DOGOVOR_ID is null
+    """
+    dirty_room = """
+    SELECT COUNT(*) FROM ROOMS WHERE ROOMS.clear = 0
+    """
+    room = con_to_firebird2(active_people_and_room)
+    expected_in = con_to_firebird2(expected_room_and_people)
+    expected_out = con_to_firebird2(expected_out_room_and_people)
+    out_of_order = con_to_firebird2(out_of_order)
+    dirtys = con_to_firebird2(dirty_room)
+    return render_template('housekeeping.html',
+                           room=room[0], people=room[1],
+                           today=datetime.now(), expected_room=expected_in[0],
+                           expected_people=expected_in[1],
+                           out_room = expected_out[0],
+                           out_people = expected_out[1],
+                           out_order = out_of_order[0],
+                           dirty = dirtys[0]
+                           )
 
 
 if __name__ == '__main__':

@@ -8,39 +8,39 @@
 <h2 class="text_center">Домакинство</h2>
 <div class="housekeeping">
     <div class="info_content">
-        Дата
+        Към дата
         <div class="info_all_center">
             <p>{{ today.strftime("%d.%m.%Y") }}</p>
         </div>
     </div>
     <div class="info_content">
-        Заети помещения
+        Заети помещения / хора
         <div class="info_all_center">
-            <p>{{ room }}</p>
+            <p>{{ room }} / {{ people }}</p>
         </div>
     </div>
     <div class="info_content">
-        Очаквано настаняване
+        Пристигащи помещения / хора
         <div class="info_all_center">
-            <p>10</p>
+            <p>{{ expected_room }} / {{ expected_people }}</p>
         </div>
     </div>
     <div class="info_content">
-        Очаквано заминаване
+        Заминаващи помещения / хора
         <div class="info_all_center">
-            <p>10</p>
+            <p>{{ out_room }} / {{ out_people }}</p>
         </div>
     </div>
     <div class="info_content">
-        Статус на стаите заетост
+        Стаи в ремонт
         <div class="info_all_center">
-            <p>10</p>
+            <p>{{ out_order }}</p>
         </div>
     </div>
     <div class="info_content">
-        Статус на стаите почистени
+        Непочистени стаи
         <div class="info_all_center">
-            <p>10</p>
+            <p>{{ dirty }}</p>
         </div>
     </div>
 </div>
