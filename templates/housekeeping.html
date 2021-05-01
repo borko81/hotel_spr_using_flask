@@ -8,10 +8,9 @@
 <h2>Домакинство</h2>
 <div class="housekeeping">
     <div class="info_content">
-        Към дата
-        <div class="info_all_center">
-            <p>{{ today.strftime("%d.%m.%Y") }}</p>
-        </div>
+            <span>{{ today.strftime("%B") }}</span>
+            <p><strong style="font-size: 46px;">{{ today.strftime("%m") }}</strong></p>
+            <p>{{ today.strftime("%Y") }}</p>
     </div>
     <div class="info_content">
         Заети помещения / хора
