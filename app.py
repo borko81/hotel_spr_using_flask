@@ -501,60 +501,109 @@ def fak_detail(id):
 
 @app.route('/housekeeping', methods=['GET'])
 def housekeeping():
-    active_people_and_room = """
-    SELECT COUNT(DISTINCT(NAST.room_id)) AS ROOM, COUNT(NAST.ROOM_ID) AS PEOPLE
-    FROM ACTIVE_NAST
-    INNER JOIN NAST ON NAST.ID = ACTIVE_NAST.nast_id
-    where NAST.CHECK_IN_DATE <= current_date and
-    dateadd(NAST.DAYS day to NAST.CHECK_IN_DATE) >= current_date and
-    coalesce(NAST.LAST_OPR_TYPE, 1) in (1, 2, 8, 23, 202) and
-    NAST.IS_DELETED = '0' and
-    NAST.DOGOVOR_ID is not null
-    """
-    expected_room_and_people = """
-    SELECT count(distinct NAST.room_id) AS ROOM, count(NAST.ROOM_ID) AS PEOPLE
-    FROM nast
-    where NAST.CHECK_IN_DATE = current_date and
-    coalesce(NAST.LAST_OPR_TYPE, 1) in (1, 2, 8, 23, 202) and
-    NAST.IS_DELETED = '0' and
-    NAST.DOGOVOR_ID is not null
-    and not exists(select active_nast.nast_id from active_nast where nast.id = active_nast.nast_id)
-    """
-    expected_out_room_and_people = """
-    SELECT COUNT(DISTINCT(NAST.room_id)) AS ROOM, COUNT(NAST.ROOM_ID) AS PEOPLE
-    FROM ACTIVE_NAST
-    INNER JOIN NAST ON NAST.ID = ACTIVE_NAST.nast_id
-    where dateadd(NAST.DAYS day to NAST.CHECK_IN_DATE) = current_date and
-    coalesce(NAST.LAST_OPR_TYPE, 1) in (1, 2, 8, 23, 202) and
-    NAST.IS_DELETED = '0' and
-    NAST.DOGOVOR_ID is not null
-    """
-    out_of_order = """
-    SELECT COUNT(DISTINCT(NAST.room_id)) AS ROOM
-    FROM NAST
-    where NAST.CHECK_IN_DATE <= current_date and
-    dateadd(NAST.DAYS day to NAST.CHECK_IN_DATE) >= current_date and
-    coalesce(NAST.LAST_OPR_TYPE, 1) in (1, 2, 8, 23, 202) and
-    NAST.DOGOVOR_ID is null
-    """
-    dirty_room = """
-    SELECT COUNT(*) FROM ROOMS WHERE ROOMS.clear = 0
-    """
-    room = con_to_firebird2(active_people_and_room)
-    expected_in = con_to_firebird2(expected_room_and_people)
-    expected_out = con_to_firebird2(expected_out_room_and_people)
-    out_of_order = con_to_firebird2(out_of_order)
-    dirtys = con_to_firebird2(dirty_room)
-    return render_template('housekeeping.html',
-                           room=room[0], people=room[1],
-                           today=datetime.now(), expected_room=expected_in[0],
-                           expected_people=expected_in[1],
-                           out_room = expected_out[0],
-                           out_people = expected_out[1],
-                           out_order = out_of_order[0],
-                           dirty = dirtys[0]
-                           )
+    if session.get('logged_in'):
+        active_people_and_room = """
+        SELECT COUNT(DISTINCT(NAST.room_id)) AS ROOM, COUNT(NAST.ROOM_ID) AS PEOPLE
+        FROM ACTIVE_NAST
+        INNER JOIN NAST ON NAST.ID = ACTIVE_NAST.nast_id
+        where NAST.CHECK_IN_DATE <= current_date and
+        dateadd(NAST.DAYS day to NAST.CHECK_IN_DATE) >= current_date and
+        coalesce(NAST.LAST_OPR_TYPE, 1) in (1, 2, 8, 23, 202) and
+        NAST.IS_DELETED = '0' and
+        NAST.DOGOVOR_ID is not null
+        """
+        expected_room_and_people = """
+        SELECT count(distinct NAST.room_id) AS ROOM, count(NAST.ROOM_ID) AS PEOPLE
+        FROM nast
+        where NAST.CHECK_IN_DATE = current_date and
+        coalesce(NAST.LAST_OPR_TYPE, 1) in (1, 2, 8, 23, 202) and
+        NAST.IS_DELETED = '0' and
+        NAST.DOGOVOR_ID is not null
+        and not exists(select active_nast.nast_id from active_nast where nast.id = active_nast.nast_id)
+        """
+        expected_out_room_and_people = """
+        SELECT COUNT(DISTINCT(NAST.room_id)) AS ROOM, COUNT(NAST.ROOM_ID) AS PEOPLE
+        FROM ACTIVE_NAST
+        INNER JOIN NAST ON NAST.ID = ACTIVE_NAST.nast_id
+        where dateadd(NAST.DAYS day to NAST.CHECK_IN_DATE) = current_date and
+        coalesce(NAST.LAST_OPR_TYPE, 1) in (1, 2, 8, 23, 202) and
+        NAST.IS_DELETED = '0' and
+        NAST.DOGOVOR_ID is not null
+        """
+        out_of_order = """
+        SELECT COUNT(DISTINCT(NAST.room_id)) AS ROOM
+        FROM NAST
+        where NAST.CHECK_IN_DATE <= current_date and
+        dateadd(NAST.DAYS day to NAST.CHECK_IN_DATE) >= current_date and
+        coalesce(NAST.LAST_OPR_TYPE, 1) in (1, 2, 8, 23, 202) and
+        NAST.DOGOVOR_ID is null
+        """
+        dirty_room = """
+        SELECT COUNT(*) FROM ROOMS WHERE ROOMS.clear = 0
+        """
+        room = con_to_firebird2(active_people_and_room)
+        expected_in = con_to_firebird2(expected_room_and_people)
+        expected_out = con_to_firebird2(expected_out_room_and_people)
+        out_of_order = con_to_firebird2(out_of_order)
+        dirtys = con_to_firebird2(dirty_room)
+        return render_template('housekeeping.html',
+                            room=room[0], people=room[1],
+                            today=datetime.now(), expected_room=expected_in[0],
+                            expected_people=expected_in[1],
+                            out_room = expected_out[0],
+                            out_people = expected_out[1],
+                            out_order = out_of_order[0],
+                            dirty = dirtys[0]
+                            )
+    else:
+        return index()
 
+
+@app.route('/dirty', methods=['GET'])
+def dirty():
+    if session.get('logged_in'):
+        rooms_status = """
+        select
+        ROOMS.NAME,
+        ROOMS.FLOOR,
+        case
+        when exists (
+            SELECT NAST.room_id AS ROOM
+                FROM NAST
+                where nast.room_id = rooms.id
+                and
+                NAST.CHECK_IN_DATE <= current_date and
+                dateadd(NAST.DAYS day to NAST.CHECK_IN_DATE) >= current_date and
+                coalesce(NAST.LAST_OPR_TYPE, 1) in (1, 2, 8, 23, 202) and
+                NAST.DOGOVOR_ID is null
+        ) then 'В ремонт'
+        when ROOMS.clear = 1
+            THEN 'Почистена'
+        else
+            case
+                when exists (
+                    SELECT NAST.room_id AS ROOM
+                    FROM ACTIVE_NAST
+                    INNER JOIN NAST ON NAST.ID = ACTIVE_NAST.nast_id
+                    where nast.room_id = rooms.id
+                    and
+                    NAST.CHECK_IN_DATE <= current_date and
+                    dateadd(NAST.DAYS day to NAST.CHECK_IN_DATE) >= current_date and
+                    coalesce(NAST.LAST_OPR_TYPE, 1) in (1, 2, 8, 23, 202) and
+                    NAST.IS_DELETED = '0' and
+                    NAST.DOGOVOR_ID is not null
+                ) then 'Заета непочистена'
+                else
+                    'Непочистена'
+            end
+        end
+        FROM ROOMS
+        ORDER BY 1
+        """
+        status = con_to_firebird(rooms_status)
+        return render_template('dirty_rooms.html', status=status)
+    else:
+        return index()
 
 if __name__ == '__main__':
     app.run(host="192.168.1.100", debug=True)

@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+
+{% block body %}
+<script>
+    document.getElementById("generalform").style.display="none";
+</script>
+<h2>Статус стаи</h2>
+
+<table class="activenast">
+    <thead>
+        <tr class="tableinfo">
+            <th>Етаж</th>
+            <th>Стая</th>
+            <th>Статус</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for room in status %}
+            <tr>
+                <td>{{ room[1] }}</td>
+                <td>{{ room[0] }}</td>
+                <td class="room_status">{{ room[2] }}</td>
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<script>
+    let status_room = document.getElementsByClassName("room_status");
+    for (let i of status_room) {
+        if (i.innerHTML.trim() == 'Непочистена') {
+            i.classList.add('dirty_room')
+        } else if (i.innerHTML.trim() == 'В ремонт'){
+            i.classList.add('maintenance_room')
+        } else if (i.innerHTML.trim() == 'Заета непочистена'){
+            i.classList.add('occupancy')
+        }
+    }
+</script>
+{% endblock body %}

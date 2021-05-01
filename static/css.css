@@ -1,3 +1,7 @@
+* {
+	font-family: Arial, Helvetica, sans-serif;
+}
+
 body {
 	min-width: 630px;
 }
@@ -295,4 +299,16 @@ nav ul a {
 	height: 50px;
 	margin: auto;
 	padding-top: 25px;
+}
+
+.dirty_room {
+	background-color: darkgrey;
+}
+
+.maintenance_room {
+	background-color:lightblue;
+}
+
+.occupancy {
+	background-color: lightpink;
 }
