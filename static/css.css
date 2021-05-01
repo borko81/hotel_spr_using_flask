@@ -202,7 +202,7 @@ nav ul a {
 }
 
 .tabletd {
-	width: 330px;
+	width: auto;
 }
 
 #result {
@@ -302,7 +302,7 @@ nav ul a {
 }
 
 .dirty_room {
-	background-color: darkgrey;
+	background-color: lightgray;
 }
 
 .maintenance_room {
@@ -311,4 +311,8 @@ nav ul a {
 
 .occupancy {
 	background-color: lightpink;
+}
+
+.reservation_ok {
+	background-color: #BCCE98;
 }

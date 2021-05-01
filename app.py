@@ -144,7 +144,8 @@ def reservations():
             reserve.tel as telephone,
             coalesce(nast.vaucher, '') as vauc,
             coalesce(usl.name_cyr, '') as pans,
-            sum(smetki_el.kol * smetki_el.suma) as smetkata
+            sum(smetki_el.kol * smetki_el.suma) as smetkata,
+            coalesce(reserve_type.name_cyr, 'Без статус')
             from nast
             inner join rooms on rooms.id = nast.room_id
             inner join dogovori on dogovori.id = nast.dogovor_id
@@ -152,11 +153,12 @@ def reservations():
             left join pansion on pansion.id = nast.pansion_id
             left join usl on pansion.usl_id = usl.id
             inner join smetki_el on smetki_el.nast_id = nast.id
+            left join reserve_type on reserve_type.id = reserve.reserve_type_id
             where nast.check_in_date between ? and ?
             and nast.last_opr_type not in (2, 4, 101)
             and nast.is_deleted = 0
             and nast.id not in (select active_nast.nast_id from active_nast)
-            group by 1,2,3,4,6,7,8,9,10
+            group by 1,2,3,4,6,7,8,9,10,12
             '''
             # Perspectivna zaetost
             q = """
