@@ -3,6 +3,7 @@
 <head>
 	<meta charset="UTF-8">
 	<title>{{ title }}</title>
+	
 	<link rel="stylesheet" href="{{ url_for('static', filename='css.css') }}">
 	<link rel="icon" href="{{ url_for('static', filename='favicon-96x96.png') }}" type="image/x-icon">
 	<link rel="shortcut icon" href="{{ url_for('static', filename='favicon-96x96.png') }}" type="image/x-icon">
@@ -35,6 +36,7 @@
 		<nav id="left" class="column">
 			<h3>Справки</h3>
 			<ul>
+				<li><a href="/housekeeping">HouseKeeping</a></li>
 				<li><a href="/info">Списък Гости</a></li>
 				<li><a href="/insertdata/reservations">Списък Резерации</a></li>
 				<li><a href="/insertdata/usls">Услуги</a></li>

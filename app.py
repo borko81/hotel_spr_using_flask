@@ -1,5 +1,5 @@
 from flask import Flask, redirect, url_for, render_template, request, Response, session, abort, flash
-from firebird.connectfdb import con_to_firebird
+from firebird.connectfdb import con_to_firebird, con_to_firebird2
 
 from collections import defaultdict
 import json
@@ -40,7 +40,7 @@ def index():
 def login():
     if request.form['password'] == 'buratino' and request.form['username'] == 'buratino':
         session['logged_in'] = True
-        return redirect(url_for('info'))
+        return redirect(url_for('housekeeping'))
     else:
         flash('wrong autentication')
         return index()
@@ -495,5 +495,22 @@ def fak_detail(id):
         return index()
 
 
+@app.route('/housekeeping', methods=['GET'])
+def housekeeping():
+    context = {}
+    q = """
+    SELECT COUNT(DISTINCT(NAST.room_id)) AS ROOM, COUNT(NAST.ROOM_ID) AS PEOPLE
+    FROM ACTIVE_NAST
+    INNER JOIN NAST ON NAST.ID = ACTIVE_NAST.nast_id
+    where NAST.CHECK_IN_DATE <= current_date and
+    dateadd(NAST.DAYS - 1 day to NAST.CHECK_IN_DATE) >= current_date and
+    coalesce(NAST.LAST_OPR_TYPE, 1) in (1, 2, 8, 23, 202) and
+    NAST.IS_DELETED = '0' and
+    NAST.DOGOVOR_ID is not null
+    """
+    room = con_to_firebird2(q)
+    return render_template('housekeeping.html', room=room[0], today=datetime.now())
+
+
 if __name__ == '__main__':
-    app.run(host="192.168.168.12", debug=True)
+    app.run(host="192.168.1.100", debug=True)

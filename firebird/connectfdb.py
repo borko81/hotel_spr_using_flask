@@ -1,10 +1,10 @@
 import fdb
 
 database = {
-    'host': '192.168.168.12',
-	#'database': r'path',
-    'user': 'user',
-    'password': 'pass'
+    'host': '192.168.1.100',
+	'database': 'flask',
+    'user': 'SYSDBA',
+    'password': 'masterkey'
 }
 
 
@@ -18,6 +18,19 @@ def con_to_firebird(query, *args):
     else:
         for line in cur.fetchall():
             yield line
+    finally:
+        con.close()
+
+
+def con_to_firebird2(query, *args):
+    con = fdb.connect(**database)
+    cur = con.cursor()
+    try:
+        cur.execute(query, *args)
+    except fdb.Error as e:
+        print(e)
+    else:
+        return cur.fetchone()
     finally:
         con.close()
 

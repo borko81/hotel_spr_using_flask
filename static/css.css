@@ -259,3 +259,39 @@ nav ul a {
 	visibility: visible;
 	-webkit-transition: all .3s ease;
 }
+
+.text_center{
+	text-align: center
+}
+
+.housekeeping {
+	display: grid;
+	grid-template-columns: auto auto auto;
+	grid-gap: 10px;
+	background-color: #fff;
+	color: #444;
+}
+
+.info_content {
+	border: 1px solid black;
+	background-color: #fff;
+	color: #000;
+	border-radius: 5px;
+	padding: 20px;
+	font-size: 150%;
+	height: 150px;
+}
+
+.info_all_center {
+	text-align: center;
+	padding: 10px;
+}
+
+.info_all_center p {
+	background-color: #BCCE98;
+	color: #000;
+	width: 200px;
+	height: 50px;
+	margin: auto;
+	padding: 10px;
+}
