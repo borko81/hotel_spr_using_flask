@@ -16,6 +16,29 @@
 			<th class="tabletd">Дължимо</th>
 		</tr>
 		{% for d in fdb_data %}
+			{% if d[6]|int == d[3]|int %}
+			<tr class="reservation_ok">
+				<td class="tabletd">{{ d[0] }}</td>
+				<td class="tabletd">{{ d[1].strftime("%d.%m.%Y") }}</td>
+				<td class="tabletd">{{ d[2].strftime("%d.%m.%Y") }}</td>
+				<td class="tabletd">{{ d[3] }}</td>
+				<td class="tabletd">{{ d[4] }}</td>
+				<td class="tabletd">{{ d[5] }}</td>
+				<td class="tabletd">{{ d[6] }}</td>
+				<td class="tabletd, info" data-id='{{ d[8] }}'>{{ "%.2f"|format(d[7]|float) }} <span class="small">детайли</span></td>
+			</tr>
+			{% elif d[6]|int > d[3]|int %}
+			<tr class="occupancy">
+				<td class="tabletd">{{ d[0] }}</td>
+				<td class="tabletd">{{ d[1].strftime("%d.%m.%Y") }}</td>
+				<td class="tabletd">{{ d[2].strftime("%d.%m.%Y") }}</td>
+				<td class="tabletd">{{ d[3] }}</td>
+				<td class="tabletd">{{ d[4] }}</td>
+				<td class="tabletd">{{ d[5] }}</td>
+				<td class="tabletd">{{ d[6] }}</td>
+				<td class="tabletd, info" data-id='{{ d[8] }}'>{{ "%.2f"|format(d[7]|float) }} <span class="small">детайли</span></td>
+			</tr>
+			{% else %}
 			<tr>
 				<td class="tabletd">{{ d[0] }}</td>
 				<td class="tabletd">{{ d[1].strftime("%d.%m.%Y") }}</td>
@@ -26,6 +49,7 @@
 				<td class="tabletd">{{ d[6] }}</td>
 				<td class="tabletd, info" data-id='{{ d[8] }}'>{{ "%.2f"|format(d[7]|float) }} <span class="small">детайли</span></td>
 			</tr>
+			{% endif %}
 		{% endfor %}
 		<div id="modal" class="modal">
 			<div class="modal-content">

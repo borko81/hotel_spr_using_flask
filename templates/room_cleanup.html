@@ -1,0 +1,81 @@
+{% extends 'base.html' %}
+
+{% block body %}
+<script>
+    document.getElementById("generalform").style.display="none";
+</script>
+<h2>Статус стаи</h2>
+
+
+<table class="activenast">
+    <thead>
+        <tr class="tableinfo">
+            <th>Стая</th>
+            <th>Етаж</th>
+            <th id="room_clean">Почистени / </th>
+            <th id="room_unclean">Непочистени / </th>
+            <th id="room_occupancy">Заети непочистени / </th>
+            <th id="room_in_maintenance">В ремонт / </th>
+        </tr>
+    </thead>
+    <tbody>
+    {% for room in context %}
+        {% if room[2]|trim == 'Непочистена' %}
+        <tr class='dirty_room'>
+            <td>{{ room[0] }}</td>
+            <td>{{ room[1] }}</td>
+            <td></td>
+            <td>Непочистена</td>
+            <td></td>
+            <td></td>
+        </tr>
+        {% elif room[2]|trim == 'Почистена' %}
+        <tr class='reservation_ok'>
+            <td>{{ room[0] }}</td>
+            <td>{{ room[1] }}</td>
+            <td>Почистена</td>
+            <td></td>
+            <td></td>
+            <td></td>
+        </tr>
+        {% elif room[2]|trim == 'Заета непочистена' %}
+        <tr class='occupancy'>
+            <td>{{ room[0] }}</td>
+            <td>{{ room[1] }}</td>
+            <td></td>
+            <td></td>
+            <td>Заета непочистена</td>
+            <td></td>
+        </tr>
+        {% else %}
+        <tr class="maintenance_room">
+            <td>{{ room[0] }}</td>
+            <td>{{ room[1] }}</td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td>В ремонт</td>
+        </tr>
+        {% endif %}
+    {% endfor %}
+    </tbody>
+</table>
+<script>
+    let clean_room = document.getElementsByClassName('reservation_ok');
+    let dirt_room = document.getElementsByClassName('dirty_room');
+    let mainenance_room = document.getElementsByClassName('maintenance_room');
+    let occupancy = document.getElementsByClassName('occupancy');
+
+
+    document.getElementById('room_clean').innerHTML += clean_room.length;
+    
+    
+    document.getElementById('room_unclean').innerHTML += dirt_room.length;
+
+    
+    document.getElementById('room_in_maintenance').innerHTML += mainenance_room.length;
+
+    
+    document.getElementById('room_occupancy').innerHTML += occupancy.length;
+</script>
+{% endblock body %}

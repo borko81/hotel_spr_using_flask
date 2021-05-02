@@ -53,7 +53,7 @@
 	      	const id = $(this).data('id')
 	      	const table = document.getElementById("fak_detail");
 	      	var tr = $(this).closest('tr');
-	      	url = 'http://' + window.location.hostname + ':5000' + id
+	      	url = 'https://' + window.location.hostname + ':5000' + id
 			//url = 'http://' + vg.unrealsoft.bg + ':5000' + id
 	      	$.ajax({
 		        url: url,
@@ -90,7 +90,7 @@
 			          	cell3.innerHTML = valaing['kol'];
 			          	cell4.innerHTML = parseFloat(valaing['price']).toFixed(2);
 			          	cell5.innerHTML = parseFloat(valaing['suma_dds']).toFixed(2);
-			          	cell6.innerHTML = valaing['suma_total'];
+			          	cell6.innerHTML = parseFloat(valaing['suma_total']).toFixed(2);
 			          	cell7.innerHTML = valaing['dds'];
 		          }
 	        },

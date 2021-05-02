@@ -655,5 +655,52 @@ def dirty():
         return index()
 
 
+@app.route('/cart_dirty', methods=['GET'])
+def cart_dirty():
+    if session.get("logged_in"):
+        rooms_status = """
+        select
+        ROOMS.NAME,
+        ROOMS.FLOOR,
+        case
+        when exists (
+            SELECT NAST.room_id AS ROOM
+                FROM NAST
+                where nast.room_id = rooms.id
+                and
+                NAST.CHECK_IN_DATE <= current_date and
+                dateadd(NAST.DAYS day to NAST.CHECK_IN_DATE) >= current_date and
+                coalesce(NAST.LAST_OPR_TYPE, 1) in (1, 2, 8, 23, 202) and
+                NAST.DOGOVOR_ID is null
+        ) then 'В ремонт'
+        when ROOMS.clear = 1
+            THEN 'Почистена'
+        else
+            case
+                when exists (
+                    SELECT NAST.room_id AS ROOM
+                    FROM ACTIVE_NAST
+                    INNER JOIN NAST ON NAST.ID = ACTIVE_NAST.nast_id
+                    where nast.room_id = rooms.id
+                    and
+                    NAST.CHECK_IN_DATE <= current_date and
+                    dateadd(NAST.DAYS day to NAST.CHECK_IN_DATE) >= current_date and
+                    coalesce(NAST.LAST_OPR_TYPE, 1) in (1, 2, 8, 23, 202) and
+                    NAST.IS_DELETED = '0' and
+                    NAST.DOGOVOR_ID is not null
+                ) then 'Заета непочистена'
+                else
+                    'Непочистена'
+            end
+        end
+        FROM ROOMS
+        ORDER BY 2
+        """
+        context = con_to_firebird(rooms_status)
+        return render_template('room_cleanup.html', context=context)
+    else:
+        return index()
+
+
 if __name__ == "__main__":
-    app.run(ssl_context=('sertificates/cert.pem', 'sertificates/key.pem'), debug=False, host='0.0.0.0')
+    app.run(ssl_context=('cert.pem', 'key.pem'), host='0.0.0.0', debug=True)
