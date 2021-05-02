@@ -9,55 +9,51 @@ from datetime import date, timedelta
 from datetime import datetime
 
 # ПОЛЗВА СЕ ЗА ПРОМЯНА НА ДАТТА ПО НАШИЯ СТАНДАРТ, МОЖЕ ДА СЕ ДОБАВЯТ И ДРУГО ФОРМАТИ
-context = {
-    'now': int(time.time()),
-    'strftime': time.strftime,
-    'strptime': datetime.strptime
-}
+context = {"now": int(time.time()), "strftime": time.strftime, "strptime": datetime.strptime}
 
 app = Flask(__name__)
 
-app.config['SECRET_KEY'] = 'borko'
+app.config["SECRET_KEY"] = "borko"
 
 
-@app.route('/insertdata/<string:name>')
+@app.route("/insertdata/<string:name>")
 def insertdata(name):
-    '''
+    """
     МИНАВАМЕ ПРЕЗ ТОЗИ ТЕМПЛЕЙТ, ЗА ДА СЕ ПОПЪЛНИ ДАТАТА
-    '''
-    return render_template('base.html', action=name)
+    """
+    return render_template("base.html", action=name)
 
 
-@app.route('/', methods=['GET'])
+@app.route("/", methods=["GET"])
 def index():
-    if not session.get('logged_in'):
-        return render_template('login.html')
+    if not session.get("logged_in"):
+        return render_template("login.html")
     else:
-        return redirect(url_for('info'))
+        return redirect(url_for("info"))
 
 
-@app.route('/login', methods=['POST'])
+@app.route("/login", methods=["POST"])
 def login():
-    if request.form['password'] == 'buratino' and request.form['username'] == 'buratino':
-        session['logged_in'] = True
-        return redirect(url_for('housekeeping'))
+    if request.form["password"] == "buratino" and request.form["username"] == "buratino":
+        session["logged_in"] = True
+        return redirect(url_for("housekeeping"))
     else:
-        flash('wrong autentication')
+        flash("wrong autentication")
         return index()
 
 
 @app.route("/logout")
 def logout():
-    session['logged_in'] = False
+    session["logged_in"] = False
     return index()
 
 
-@app.route('/info', methods=['GET', 'POST'])
+@app.route("/info", methods=["GET", "POST"])
 def info():
-    '''Списък с настанените гости в списъка гости'''
-    if session.get('logged_in') == True:
-        action = '/info'
-        query = '''
+    """Списък с настанените гости в списъка гости"""
+    if session.get("logged_in") == True:
+        action = "/info"
+        query = """
 		WITH TMP_SMT AS (
 		SELECT
 		ACTIVE_NAST.NAST_ID,
@@ -86,21 +82,21 @@ def info():
 		LEFT JOIN BULGARIANS ON NAST.BUL_ID = BULGARIANS.ID
 		LEFT JOIN TMP_SMT ON TMP_SMT.NAST_ID = ACTIVE_NAST.NAST_ID
 		ORDER BY 5
-        '''
+        """
         fdb_data = con_to_firebird(query)
-        return render_template('index.html', action=action, fdb_data=fdb_data, title="гости", **context)
+        return render_template("index.html", action=action, fdb_data=fdb_data, title="гости", **context)
     else:
-        flash('wrong autentication')
+        flash("wrong autentication")
         return index()
 
 
-@app.route('/info/<int:guest_id>')
+@app.route("/info/<int:guest_id>")
 def detail_info(guest_id):
-    if session.get('logged_in') == True:
-        '''
+    if session.get("logged_in") == True:
+        """
         ДЕТЕЙЛИТЕ НА СМЕТАТА, ВИКАТ СЕ В МОДАЛНИЯТ ДИАЛОГ
-        '''
-        query = '''
+        """
+        query = """
 		select
 		coalesce(usl.name_cyr, 'Търговски обект'),
 		sum((smetki_el.kol * ROUND(smetki_el.suma, 2)))
@@ -111,28 +107,28 @@ def detail_info(guest_id):
 		where smetki_el.def_nast_id = ?
 		and not exists (select smt_pay_node.id from smt_pay_node where smt_pay_node.smetka_el_id = smetki_el.id)
 		group by usl.name_cyr
-        '''
+        """
         fdb_data_smetka_el = con_to_firebird(query, (guest_id,))
         detail_data = {}
         for line in fdb_data_smetka_el:
             detail_data[line[0]] = line[1]
         return detail_data
     else:
-        flash('wrong autentication')
+        flash("wrong autentication")
         return index()
 
 
-@app.route('/reservations', methods=['GET', 'POST'])
+@app.route("/reservations", methods=["GET", "POST"])
 def reservations():
-    '''
+    """
     СПИСЪК С РЕЗЕРАЦИИ
-    '''
-    if session.get('logged_in') == True:
-        action = '/reservations'
-        if request.method == 'GET':
-            return redirect(url_for('insertdata'))
+    """
+    if session.get("logged_in") == True:
+        action = "/reservations"
+        if request.method == "GET":
+            return redirect(url_for("insertdata"))
         else:
-            query = '''
+            query = """
             select
             nast.reserve_id as res_id,
             nast.check_in_date as check_in,
@@ -159,7 +155,7 @@ def reservations():
             and nast.is_deleted = 0
             and nast.id not in (select active_nast.nast_id from active_nast)
             group by 1,2,3,4,6,7,8,9,10,12
-            '''
+            """
             # Perspectivna zaetost
             q = """
             with table_one as
@@ -189,35 +185,47 @@ def reservations():
             """
             result = defaultdict(list)
             # End of perp zaetos
-            f_data = request.form['fdata']
-            l_data = request.form['ldata']
+            f_data = request.form["fdata"]
+            l_data = request.form["ldata"]
 
-            dates = datetime.strptime(
-                l_data, "%Y-%m-%d") - datetime.strptime(f_data, "%Y-%m-%d")
+            dates = datetime.strptime(l_data, "%Y-%m-%d") - datetime.strptime(f_data, "%Y-%m-%d")
             for i in range(dates.days + 1):
                 day = datetime.strptime(f_data, "%Y-%m-%d") + timedelta(days=i)
                 for l in con_to_firebird(q, (str(day)[:-9], str(day)[:-9])):
                     result[str(day)[:-9]].append(l)
             Result = dict(result)
 
-            fdb_reservations = con_to_firebird(query, (f_data, l_data, ))
-            return render_template('reservations.html', f_data=f_data,
-                                   l_data=l_data, fdb_reservations=fdb_reservations, title="резервации", Result=Result, **context)
+            fdb_reservations = con_to_firebird(
+                query,
+                (
+                    f_data,
+                    l_data,
+                ),
+            )
+            return render_template(
+                "reservations.html",
+                f_data=f_data,
+                l_data=l_data,
+                fdb_reservations=fdb_reservations,
+                title="резервации",
+                Result=Result,
+                **context
+            )
     else:
         return index()
 
 
-@app.route('/usls', methods=['GET', 'POST'])
+@app.route("/usls", methods=["GET", "POST"])
 def usls():
-    '''
+    """
     НАЧИСЛЕНИ И ПЛАТЕНО УСЛУГИ ЗА ПЕРИДО, ПОЛЗВАТ СЕ 2 КУЕРИТЕ, ЩОТО МИСЛЯ ДА СЕ ДОБАВЯ ОЩЕ!
-    '''
-    if session.get('logged_in') == True:
-        action = '/usls'
-        if request.method == 'GET':
-            return redirect(url_for('insertdata'))
+    """
+    if session.get("logged_in") == True:
+        action = "/usls"
+        if request.method == "GET":
+            return redirect(url_for("insertdata"))
         else:
-            query_paid = '''
+            query_paid = """
             select
             case
             when SMETKI_EL.PRICE_ID is not null then case
@@ -246,8 +254,8 @@ def usls():
             PAYMENT_EL.ID = SMT_PAY_NODE.PAYMENT_EL_ID
             group by 1
             order by 1
-            '''
-            query_accrued = '''
+            """
+            query_accrued = """
             select
             case
             when SMETKI_EL.PRICE_ID is not null then case
@@ -271,32 +279,48 @@ def usls():
             and
             opr.id != '0'
             group by 1
-                '''
-            f_data = request.form['fdata']
-            l_data = request.form['ldata']
+                """
+            f_data = request.form["fdata"]
+            l_data = request.form["ldata"]
             fdb_reservations_paid = con_to_firebird(
-                query_paid, (f_data, l_data, ))
+                query_paid,
+                (
+                    f_data,
+                    l_data,
+                ),
+            )
             fdb_reservations_accured = con_to_firebird(
-                query_accrued, (f_data, l_data, ))
-            return render_template('usl.html', f_data=f_data, l_data=l_data,
-                                   fdb_reservations_paid=fdb_reservations_paid,
-                                   fdb_reservations_accured=fdb_reservations_accured, title="услуги", **context)
+                query_accrued,
+                (
+                    f_data,
+                    l_data,
+                ),
+            )
+            return render_template(
+                "usl.html",
+                f_data=f_data,
+                l_data=l_data,
+                fdb_reservations_paid=fdb_reservations_paid,
+                fdb_reservations_accured=fdb_reservations_accured,
+                title="услуги",
+                **context
+            )
     else:
         return index()
 
 
-@app.route('/room_landing', methods=['POST', 'GET'])
+@app.route("/room_landing", methods=["POST", "GET"])
 def room_landing():
-    '''
+    """
     ЗАЕТИ ПОМЕЩЕНИЯ ЗА ПЕРИОДА
-    '''
-    if session.get('logged_in') == True:
-        action = '/room_landing'
-        title = 'Заети стаи'
-        if request.method == 'GET':
-            return redirect(url_for('insertdata'))
+    """
+    if session.get("logged_in") == True:
+        action = "/room_landing"
+        title = "Заети стаи"
+        if request.method == "GET":
+            return redirect(url_for("insertdata"))
         else:
-            query = '''
+            query = """
             with TABLE1
             as (select
                 ROOMS.name as name,
@@ -314,20 +338,32 @@ def room_landing():
             select TABLE1.name, TABLE1.dogovor, count(TABLE1.first)
             from TABLE1
             group by TABLE1.name, TABLE1.dogovor
-            '''
-            f_data = request.form['fdata']
-            l_data = request.form['ldata']
-            fdb_room_landing = con_to_firebird(query, (l_data, f_data, ))
-            return render_template('room_landing.html', f_data=f_data,
-                                   l_data=l_data, title=title, fdb_room_landing=fdb_room_landing, **context)
+            """
+            f_data = request.form["fdata"]
+            l_data = request.form["ldata"]
+            fdb_room_landing = con_to_firebird(
+                query,
+                (
+                    l_data,
+                    f_data,
+                ),
+            )
+            return render_template(
+                "room_landing.html",
+                f_data=f_data,
+                l_data=l_data,
+                title=title,
+                fdb_room_landing=fdb_room_landing,
+                **context
+            )
     else:
         return index()
 
 
-@app.route('/payment', methods=['POST', 'GET'])
+@app.route("/payment", methods=["POST", "GET"])
 def payment():
-    if session.get('logged_in') == True:
-        if request.method == 'POST':
+    if session.get("logged_in") == True:
+        if request.method == "POST":
             query = """
 SELECT
     
@@ -360,21 +396,23 @@ GROUP BY 1,2
 ORDER BY 1,2
             """
             query_get_kasa_name = """select ts_kasa.name_lat from ts_kasa"""
-            roomname = request.form['roomsinfo']
-            room_payment = con_to_firebird(query, (roomname.upper(), ))
+            roomname = request.form["roomsinfo"]
+            room_payment = con_to_firebird(query, (roomname.upper(),))
             kasa_name = con_to_firebird(query_get_kasa_name)
             kasa_list = [i[0] for i in kasa_name]
-            return render_template('payment.html', roomname=roomname, room_payment=room_payment, kasa_name=kasa_list, **context)
+            return render_template(
+                "payment.html", roomname=roomname, room_payment=room_payment, kasa_name=kasa_list, **context
+            )
         else:
-            return render_template('payment.html')
+            return render_template("payment.html")
 
     else:
         return index()
 
 
-@app.route('/payment/<string:room_name>/<string:kasa>', methods=['GET', 'POST'])
+@app.route("/payment/<string:room_name>/<string:kasa>", methods=["GET", "POST"])
 def paymnet_id(room_name, kasa):
-    if session.get('logged_in') == True:
+    if session.get("logged_in") == True:
         query_ts_smetka_el = """
         SELECT ts_kits.name_cyr,
         opr.date_time,
@@ -393,38 +431,35 @@ def paymnet_id(room_name, kasa):
         """
 
         def json_format(name, datetime, price):
-            r = {
-                'name': name,
-                'datatime': datetime,
-                'price': price
-            }
+            r = {"name": name, "datatime": datetime, "price": price}
             return r
 
         ts_smetka_el = con_to_firebird(
-            query_ts_smetka_el, (room_name.upper(), kasa,))
+            query_ts_smetka_el,
+            (
+                room_name.upper(),
+                kasa,
+            ),
+        )
         data = []
         for i in ts_smetka_el:
-            data.append(json_format(
-                str(i[0]),
-                str(i[1])[:-10],
-                str(i[2])
-            ))
+            data.append(json_format(str(i[0]), str(i[1])[:-10], str(i[2])))
         return json.dumps(data)
 
     else:
         return index()
 
 
-@app.route('/fak', methods=['GET', 'POST'])
+@app.route("/fak", methods=["GET", "POST"])
 def fak():
-    '''
+    """
     УСЛУГИ ПРЕЗ ПЕРИОДА
-    '''
-    if session.get('logged_in') == True:
-        action = '/fak'
+    """
+    if session.get("logged_in") == True:
+        action = "/fak"
         title = "фактури"
-        if request.method == 'GET':
-            return redirect(url_for('insertdata'))
+        if request.method == "GET":
+            return redirect(url_for("insertdata"))
         else:
             q = """
             select FAK.ID, FAK.NUMBER,
@@ -448,19 +483,26 @@ def fak():
             inner join PAY_TIP on PAY_TIP.ID = FAK.V_BROI
             where cast(OPR.DATE_TIME as date) between ? and ?
             """
-            f_data = request.form['fdata']
-            l_data = request.form['ldata']
-            fdb_fakturi = con_to_firebird(q, (f_data, l_data, ))
-            return render_template('fak.html', f_data=f_data,
-                                   l_data=l_data, title=title, fdb_fakturi=fdb_fakturi, **context)
+            f_data = request.form["fdata"]
+            l_data = request.form["ldata"]
+            fdb_fakturi = con_to_firebird(
+                q,
+                (
+                    f_data,
+                    l_data,
+                ),
+            )
+            return render_template(
+                "fak.html", f_data=f_data, l_data=l_data, title=title, fdb_fakturi=fdb_fakturi, **context
+            )
 
     else:
         return index()
 
 
-@app.route('/fak/<string:id>', methods=['GET', 'POST'])
+@app.route("/fak/<string:id>", methods=["GET", "POST"])
 def fak_detail(id):
-    if session.get('logged_in') == True:
+    if session.get("logged_in") == True:
         q = """
         select
         fak.number,
@@ -475,35 +517,37 @@ def fak_detail(id):
 
         def json_format(id, name, kol, price, suma_dds, suma_total, dds):
             r = {
-                'id': id,
-                'name': name,
-                'kol': kol,
-                'price': price,
-                'suma_dds': suma_dds,
-                'suma_total': suma_total,
-                'dds': dds
+                "id": id,
+                "name": name,
+                "kol": kol,
+                "price": price,
+                "suma_dds": suma_dds,
+                "suma_total": suma_total,
+                "dds": dds,
             }
             return r
 
         d = []
         for i in fdb_faktura_detail:
-            d.append(json_format(
-                str(i[0]),
-                str(i[1]),
-                str(i[2]),
-                str(i[3]),
-                str(i[4]),
-                str(i[5]),
-                str(i[6]),
-            ))
+            d.append(
+                json_format(
+                    str(i[0]),
+                    str(i[1]),
+                    str(i[2]),
+                    str(i[3]),
+                    str(i[4]),
+                    str(i[5]),
+                    str(i[6]),
+                )
+            )
         return json.dumps(d)
     else:
         return index()
 
 
-@app.route('/housekeeping', methods=['GET'])
+@app.route("/housekeeping", methods=["GET"])
 def housekeeping():
-    if session.get('logged_in'):
+    if session.get("logged_in"):
         active_people_and_room = """
         SELECT COUNT(DISTINCT(NAST.room_id)) AS ROOM, COUNT(NAST.ROOM_ID) AS PEOPLE
         FROM ACTIVE_NAST
@@ -548,22 +592,25 @@ def housekeeping():
         expected_out = con_to_firebird2(expected_out_room_and_people)
         out_of_order = con_to_firebird2(out_of_order)
         dirtys = con_to_firebird2(dirty_room)
-        return render_template('housekeeping.html',
-                            room=room[0], people=room[1],
-                            today=datetime.now(), expected_room=expected_in[0],
-                            expected_people=expected_in[1],
-                            out_room = expected_out[0],
-                            out_people = expected_out[1],
-                            out_order = out_of_order[0],
-                            dirty = dirtys[0]
-                            )
+        return render_template(
+            "housekeeping.html",
+            room=room[0],
+            people=room[1],
+            today=datetime.now(),
+            expected_room=expected_in[0],
+            expected_people=expected_in[1],
+            out_room=expected_out[0],
+            out_people=expected_out[1],
+            out_order=out_of_order[0],
+            dirty=dirtys[0],
+        )
     else:
         return index()
 
 
-@app.route('/dirty', methods=['GET'])
+@app.route("/dirty", methods=["GET"])
 def dirty():
-    if session.get('logged_in'):
+    if session.get("logged_in"):
         rooms_status = """
         select
         ROOMS.NAME,
@@ -603,9 +650,10 @@ def dirty():
         ORDER BY 1
         """
         status = con_to_firebird(rooms_status)
-        return render_template('dirty_rooms.html', status=status)
+        return render_template("dirty_rooms.html", status=status)
     else:
         return index()
 
-if __name__ == '__main__':
-    app.run(host="192.168.1.100", debug=True)
+
+if __name__ == "__main__":
+    app.run(ssl_context=('sertificates/cert.pem', 'sertificates/key.pem'), debug=False, host='0.0.0.0')

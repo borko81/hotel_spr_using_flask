@@ -1,11 +1,6 @@
 import fdb
 
-database = {
-    'host': '192.168.1.100',
-	'database': 'flask',
-    'user': 'SYSDBA',
-    'password': 'masterkey'
-}
+database = {"host": "192.168.168.12", "database": "flask", "user": "SYSDBA", "password": "masterkey"}
 
 
 def con_to_firebird(query, *args):
@@ -35,8 +30,9 @@ def con_to_firebird2(query, *args):
         con.close()
 
 
-if __name__ == '__main__':
-    for line in con_to_firebird('''select
+if __name__ == "__main__":
+    for line in con_to_firebird(
+        """select
     sum((smetki_el.kol * smetki_el.suma)),
     coalesce(usl.name_cyr, 'Търговски обект')
     from SMETKI_EL
@@ -45,5 +41,7 @@ if __name__ == '__main__':
     inner join NAST on NAST.ID = SMETKI_EL.DEF_NAST_ID
     where smetki_el.def_nast_id = ?
     group by usl.name_cyr
-    ''', (9,)):
+    """,
+        (9,),
+    ):
         print(line)
