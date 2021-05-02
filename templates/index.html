@@ -1,97 +1,128 @@
 {% extends 'base.html' %}
 
 {% block body %}
-	<script>
-		document.getElementById("generalform").style.display="none";
-	</script>
-	<table class="activenast">
-		<tr class="tableinfo">
-			<th class="tabletd">Име</th>
-			<th class="tabletd">Дата Пристига</th>
-			<th class="tabletd">Дата Отпътува</th>
-			<th class="tabletd">Дни</th>
-			<th class="tabletd">Помещение</th>
-			<th class="tabletd">Договор</th>
-			<th class="tabletd">Нощувки в обекта</th>
-			<th class="tabletd">Дължимо</th>
-		</tr>
-		{% for d in fdb_data %}
-			{% if d[6]|int == d[3]|int %}
-			<tr class="reservation_ok">
-				<td class="tabletd">{{ d[0] }}</td>
-				<td class="tabletd">{{ d[1].strftime("%d.%m.%Y") }}</td>
-				<td class="tabletd">{{ d[2].strftime("%d.%m.%Y") }}</td>
-				<td class="tabletd">{{ d[3] }}</td>
-				<td class="tabletd">{{ d[4] }}</td>
-				<td class="tabletd">{{ d[5] }}</td>
-				<td class="tabletd">{{ d[6] }}</td>
-				<td class="tabletd, info" data-id='{{ d[8] }}'>{{ "%.2f"|format(d[7]|float) }} <span class="small">детайли</span></td>
-			</tr>
-			{% elif d[6]|int > d[3]|int %}
-			<tr class="occupancy">
-				<td class="tabletd">{{ d[0] }}</td>
-				<td class="tabletd">{{ d[1].strftime("%d.%m.%Y") }}</td>
-				<td class="tabletd">{{ d[2].strftime("%d.%m.%Y") }}</td>
-				<td class="tabletd">{{ d[3] }}</td>
-				<td class="tabletd">{{ d[4] }}</td>
-				<td class="tabletd">{{ d[5] }}</td>
-				<td class="tabletd">{{ d[6] }}</td>
-				<td class="tabletd, info" data-id='{{ d[8] }}'>{{ "%.2f"|format(d[7]|float) }} <span class="small">детайли</span></td>
-			</tr>
-			{% else %}
-			<tr>
-				<td class="tabletd">{{ d[0] }}</td>
-				<td class="tabletd">{{ d[1].strftime("%d.%m.%Y") }}</td>
-				<td class="tabletd">{{ d[2].strftime("%d.%m.%Y") }}</td>
-				<td class="tabletd">{{ d[3] }}</td>
-				<td class="tabletd">{{ d[4] }}</td>
-				<td class="tabletd">{{ d[5] }}</td>
-				<td class="tabletd">{{ d[6] }}</td>
-				<td class="tabletd, info" data-id='{{ d[8] }}'>{{ "%.2f"|format(d[7]|float) }} <span class="small">детайли</span></td>
-			</tr>
-			{% endif %}
-		{% endfor %}
-		<div id="modal" class="modal">
-			<div class="modal-content">
-				<span class="closd">&times;</span>
-				<p id="smetka"></p>
-				<p id="detail_result"></p>
-			</div>
+<script>
+	document.getElementById("generalform").style.display = "none";
+</script>
+<div class="inline_all">
+	<input type="text" id="myInput" onkeyup="myFunction()" placeholder="What are you looking for..."
+		title="Type in a name" class="search_field">
+</div>
+<table class="activenast" id="myTable">
+	<tr class="tableinfo">
+		<th class="tabletd">Име</th>
+		<th class="tabletd">Дата Пристига</th>
+		<th class="tabletd">Дата Отпътува</th>
+		<th class="tabletd">Дни</th>
+		<th class="tabletd">Помещение</th>
+		<th class="tabletd">Договор</th>
+		<th class="tabletd">Нощувки в обекта</th>
+		<th class="tabletd">Дължимо</th>
+	</tr>
+	{% for d in fdb_data %}
+	{% if d[6]|int == d[3]|int %}
+	<tr class="reservation_ok">
+		<td class="tabletd">{{ d[0] }}</td>
+		<td class="tabletd">{{ d[1].strftime("%d.%m.%Y") }}</td>
+		<td class="tabletd">{{ d[2].strftime("%d.%m.%Y") }}</td>
+		<td class="tabletd">{{ d[3] }}</td>
+		<td class="tabletd">{{ d[4] }}</td>
+		<td class="tabletd">{{ d[5] }}</td>
+		<td class="tabletd">{{ d[6] }}</td>
+		<td class="tabletd, info" data-id='{{ d[8] }}'>{{ "%.2f"|format(d[7]|float) }} <span
+				class="small">детайли</span></td>
+	</tr>
+	{% elif d[6]|int > d[3]|int %}
+	<tr class="occupancy">
+		<td class="tabletd">{{ d[0] }}</td>
+		<td class="tabletd">{{ d[1].strftime("%d.%m.%Y") }}</td>
+		<td class="tabletd">{{ d[2].strftime("%d.%m.%Y") }}</td>
+		<td class="tabletd">{{ d[3] }}</td>
+		<td class="tabletd">{{ d[4] }}</td>
+		<td class="tabletd">{{ d[5] }}</td>
+		<td class="tabletd">{{ d[6] }}</td>
+		<td class="tabletd, info" data-id='{{ d[8] }}'>{{ "%.2f"|format(d[7]|float) }} <span
+				class="small">детайли</span></td>
+	</tr>
+	{% else %}
+	<tr>
+		<td class="tabletd">{{ d[0] }}</td>
+		<td class="tabletd">{{ d[1].strftime("%d.%m.%Y") }}</td>
+		<td class="tabletd">{{ d[2].strftime("%d.%m.%Y") }}</td>
+		<td class="tabletd">{{ d[3] }}</td>
+		<td class="tabletd">{{ d[4] }}</td>
+		<td class="tabletd">{{ d[5] }}</td>
+		<td class="tabletd">{{ d[6] }}</td>
+		<td class="tabletd, info" data-id='{{ d[8] }}'>{{ "%.2f"|format(d[7]|float) }} <span
+				class="small">детайли</span></td>
+	</tr>
+	{% endif %}
+	{% endfor %}
+	<div id="modal" class="modal">
+		<div class="modal-content">
+			<span class="closd">&times;</span>
+			<p id="smetka"></p>
+			<p id="detail_result"></p>
 		</div>
-	</table>
-	<script>
-			$(function () {
-	  $('.info').on('click', function () {
-	    const id = $(this).data('id')
-	    const result = $('#detail_result')
-	    result.empty()
-	    $('#smetka').text(`Сметка детаили ${id}`)
-	    url = '/info/' + id
-	    $.ajax({
-	      url: url,
-	      type: 'GET',
-	      success: function (response) {
-	        const data = response
-	        for (const k in data) {
-	          result.append('<strong>' + k + '</strong>' + '&nbsp;&nbsp;&nbsp;' + Math.round(parseFloat(data[k]) * 100)/100 + ' лв' + '<br />')
-	        }
-	      },
-	      error: function (error) {
-	        alert(error)
-	      }
-	    })
-	    $('#modal').css('display', 'block')
-	  })
+	</div>
+</table>
+<script>
+	$(function () {
+		$('.info').on('click', function () {
+			const id = $(this).data('id')
+			const result = $('#detail_result')
+			result.empty()
+			$('#smetka').text(`Сметка детаили ${id}`)
+			url = '/info/' + id
+			$.ajax({
+				url: url,
+				type: 'GET',
+				success: function (response) {
+					const data = response
+					for (const k in data) {
+						result.append('<strong>' + k + '</strong>' + '&nbsp;&nbsp;&nbsp;' + Math.round(parseFloat(data[k]) * 100) / 100 + ' лв' + '<br />')
+					}
+				},
+				error: function (error) {
+					alert(error)
+				}
+			})
+			$('#modal').css('display', 'block')
+		})
 
-	  $('span').on('click', function () {
-	    $('#modal').css('display', 'none')
-	  })
+		$('span').on('click', function () {
+			$('#modal').css('display', 'none')
+		})
 	});
 
 	window.onclick = function (event) {
-	  if (event.target == modal) {
-	    modal.style.display = 'none'
-	  }
+		if (event.target == modal) {
+			modal.style.display = 'none'
+		}
 	};
-	</script>
+
+	function myFunction() {
+		let input, filter, table, tr, td, i;
+		input = document.getElementById("myInput");
+		filter = input.value.toUpperCase();
+		table = document.getElementById("myTable");
+		tr = table.getElementsByTagName("tr");
+
+		for (i = 0; i < tr.length; i++) {
+			td = tr[i].getElementsByTagName("td")[0];
+			td0 = tr[i].getElementsByTagName("td")[1];
+			td1 = tr[i].getElementsByTagName("td")[2];
+			td2 = tr[i].getElementsByTagName("td")[4];
+			td3 = tr[i].getElementsByTagName("td")[5];
+
+			if (td) {
+				if ((td.innerHTML.toUpperCase().indexOf(filter) > -1) || (td1.innerHTML.toUpperCase().indexOf(filter) > -1) || (td2.innerHTML.toUpperCase().indexOf(filter) > -1) || (td3.innerHTML.toUpperCase().indexOf(filter) > -1) || (td0.innerHTML.toUpperCase().indexOf(filter) > -1)) {
+					tr[i].style.display = "";
+				} else {
+					tr[i].style.display = "none";
+				}
+			}
+		}
+	}
+</script>
 {% endblock body %}

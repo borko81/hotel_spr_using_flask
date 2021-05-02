@@ -316,3 +316,18 @@ nav ul a {
 .reservation_ok {
 	background-color: #DAE9BC;
 }
+
+.inline_all{
+	display: inline-block
+}
+
+.inline_all h2 {
+	display: inline-block
+}
+
+.search_field {
+	width: 100%;
+	font-size: 14px;
+	border: 1px solid #ddd;
+	margin-bottom: 10px;
+}

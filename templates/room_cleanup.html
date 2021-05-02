@@ -4,10 +4,11 @@
 <script>
     document.getElementById("generalform").style.display="none";
 </script>
-<h2>Статус стаи</h2>
+<div class="inline_all">
+    <input type="text" id="myInput" onkeyup="myFunction()" placeholder="What are you looking for..." title="Type in a name" class="search_field">
+</div>
 
-
-<table class="activenast">
+<table class="activenast" id="myTable">
     <thead>
         <tr class="tableinfo">
             <th>Стая</th>
@@ -77,5 +78,28 @@
 
     
     document.getElementById('room_occupancy').innerHTML += occupancy.length;
+
+    function myFunction() {
+        let input, filter, table, tr, td, i;
+        input = document.getElementById("myInput");
+        filter = input.value.toUpperCase();
+        table = document.getElementById("myTable");
+        tr = table.getElementsByTagName("tr");
+
+        for (i = 0; i < tr.length; i++) {
+            td = tr[i].getElementsByTagName("td")[0]; // for column one
+            td1 = tr[i].getElementsByTagName("td")[2]; // for column two
+            td2 = tr[i].getElementsByTagName("td")[3];
+            td3 = tr[i].getElementsByTagName("td")[4];
+
+            if (td) {
+            if ( (td.innerHTML.toUpperCase().indexOf(filter) > -1) || (td1.innerHTML.toUpperCase().indexOf(filter) > -1) || (td2.innerHTML.toUpperCase().indexOf(filter) > -1) || (td3.innerHTML.toUpperCase().indexOf(filter) > -1))  {            
+                tr[i].style.display = "";
+            } else {
+                tr[i].style.display = "none";
+            }
+            }
+        }
+        } 
 </script>
 {% endblock body %}

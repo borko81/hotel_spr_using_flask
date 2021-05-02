@@ -55,7 +55,9 @@
 	<br><hr><br>
 	<table class="activenast">
 		{% for day, value in Result.items() %}
+			<tr class="tableinfo">
 			<td>{{ day }}</td><td>Заети</td><td>Общо</td><td>За заемане</td>
+			</tr>
 			{% for v in value %}
 				<tr><td>{{ v[0] }}</td><td>{{ v[1] }}</td><td>{{ v[2] }}</td><td>{{ v[2] - v[1] }}</td></tr>
 			{% endfor %}
