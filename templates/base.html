@@ -1,9 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
 	<meta charset="UTF-8">
 	<title>{% block title %}CMS{% endblock title %}</title>
-	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<link rel="stylesheet" href="{{ url_for('static', filename='css.css') }}">
 	<link rel="icon" href="{{ url_for('static', filename='favicon-96x96.png') }}" type="image/x-icon">
 	<link rel="shortcut icon" href="{{ url_for('static', filename='favicon-96x96.png') }}" type="image/x-icon">
@@ -11,11 +12,25 @@
 	<script src="{{ url_for('static', filename='js.js') }}" type="text/javascript"></script>
 
 </head>
+
 <body>
-	<header id="header">UnrealSoft LTD</header>
 
-	<div id="container">
 
+	<div class="sidebar">
+		<a href="https://unrealsoft.bg" class="active">UnrealSoft LTD</a>
+		<a href="/housekeeping">Домакинство</a>
+		<a href="/cart_dirty">Стаи за почистване</a>
+		<a href="/info">Списък Гости</a>
+		<a href="/insertdata/reservations">Списък Резерации</a>
+		<a href="/insertdata/usls">Услуги</a>
+		<a href="/insertdata/room_landing">Заети Стаи</a>
+		<a href="/payment">Сметка за плащане</a>
+		<a href="/insertdata/fak">Фактури</a>
+		<a href="/logout">Изход</a>
+
+	</div>
+
+	<div class="content">
 		<main id="center" class="column">
 			<form method='POST' action='/{{ action }}' id="generalform">
 				<label for="fdata">Първа дата:
@@ -30,24 +45,8 @@
 			<article id="result">
 				{% block body %}{% endblock %}
 			</article>
-		</main>
-		
-		<div id="menu">
-		<nav id="left" class="column">
-			<h3>Справки</h3>
-			<ul>
-				<li><a href="/housekeeping">Домакинство</a></li>
-				<li><a href="/cart_dirty">Стаи за почистване</a></li>
-				<li><a href="/info">Списък Гости</a></li>
-				<li><a href="/insertdata/reservations">Списък Резерации</a></li>
-				<li><a href="/insertdata/usls">Услуги</a></li>
-				<li><a href="/insertdata/room_landing">Заети Стаи</a></li>
-				<li><a href="/payment">Сметка за плащане</a></li>
-				<li><a href="/insertdata/fak">Фактури</a></li>
-				<li><a href="/logout">Изход</a></li>
-			</ul>
-		</nav>
-		</div>
+
 	</div>
 </body>
+
 </html>
