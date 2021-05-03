@@ -1,6 +1,6 @@
 import fdb
 
-database = {"host": "ip", "database": "hotel_spr", "user": "user", "password": "password"}
+database = {"host": "ip", "database": "hotel_spr", "user": "username", "password": "password"}
 
 
 def con_to_firebird(query, *args):
