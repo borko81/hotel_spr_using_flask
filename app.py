@@ -9,7 +9,8 @@ from datetime import date, timedelta
 from datetime import datetime
 
 # ПОЛЗВА СЕ ЗА ПРОМЯНА НА ДАТТА ПО НАШИЯ СТАНДАРТ, МОЖЕ ДА СЕ ДОБАВЯТ И ДРУГО ФОРМАТИ
-context = {"now": int(time.time()), "strftime": time.strftime, "strptime": datetime.strptime}
+context = {"now": int(time.time()), "strftime": time.strftime,
+           "strptime": datetime.strptime}
 
 app = Flask(__name__)
 
@@ -54,34 +55,34 @@ def info():
     if session.get("logged_in") == True:
         action = "/info"
         query = """
-		WITH TMP_SMT AS (
-		SELECT
-		ACTIVE_NAST.NAST_ID,
-		SUM(SMETKI_EL.KOL * ROUND(SMETKI_EL.SUMA,2)) AS SUMA
-		FROM
-		ACTIVE_NAST INNER JOIN SMETKI_EL ON ACTIVE_NAST.NAST_ID = SMETKI_EL.DEF_NAST_ID
-		WHERE
-		NOT EXISTS(SELECT SMT.ID FROM SMT_PAY_NODE SMT WHERE SMT.SMETKA_EL_ID = SMETKI_EL.ID)
-		GROUP BY 1
-		)
+        WITH TMP_SMT AS (
+        SELECT
+        ACTIVE_NAST.NAST_ID,
+        SUM(SMETKI_EL.KOL * ROUND(SMETKI_EL.SUMA,2)) AS SUMA
+        FROM
+        ACTIVE_NAST INNER JOIN SMETKI_EL ON ACTIVE_NAST.NAST_ID = SMETKI_EL.DEF_NAST_ID
+        WHERE
+        NOT EXISTS(SELECT SMT.ID FROM SMT_PAY_NODE SMT WHERE SMT.SMETKA_EL_ID = SMETKI_EL.ID)
+        GROUP BY 1
+        )
 
-		SELECT
-		COALESCE(BULGARIANS.NAME, 'НЕ ВЪВЕДЕНО'),
-		NAST.CHECK_IN_DATE,
-		DATEADD(NAST.DAYS DAY TO NAST.CHECK_IN_DATE),
-		NAST.DAYS,
-		ROOMS.NAME,
-		DOGOVORI.NAME_CYR,
-		DATEDIFF(DAY FROM NAST.CHECK_IN_DATE TO CURRENT_DATE),
-		COALESCE(TMP_SMT.SUMA, 0.00),
-		NAST.ID
-		FROM
-		ACTIVE_NAST INNER JOIN NAST ON NAST.ID = ACTIVE_NAST.NAST_ID
-		INNER JOIN ROOMS ON ROOMS.ID = NAST.ROOM_ID
-		INNER JOIN DOGOVORI ON DOGOVORI.ID = NAST.DOGOVOR_ID
-		LEFT JOIN BULGARIANS ON NAST.BUL_ID = BULGARIANS.ID
-		LEFT JOIN TMP_SMT ON TMP_SMT.NAST_ID = ACTIVE_NAST.NAST_ID
-		ORDER BY 5
+        SELECT
+        COALESCE(BULGARIANS.NAME, 'НЕ ВЪВЕДЕНО'),
+        NAST.CHECK_IN_DATE,
+        DATEADD(NAST.DAYS DAY TO NAST.CHECK_IN_DATE),
+        NAST.DAYS,
+        ROOMS.NAME,
+        DOGOVORI.NAME_CYR,
+        DATEDIFF(DAY FROM NAST.CHECK_IN_DATE TO CURRENT_DATE),
+        COALESCE(TMP_SMT.SUMA, 0.00),
+        NAST.ID
+        FROM
+        ACTIVE_NAST INNER JOIN NAST ON NAST.ID = ACTIVE_NAST.NAST_ID
+        INNER JOIN ROOMS ON ROOMS.ID = NAST.ROOM_ID
+        INNER JOIN DOGOVORI ON DOGOVORI.ID = NAST.DOGOVOR_ID
+        LEFT JOIN BULGARIANS ON NAST.BUL_ID = BULGARIANS.ID
+        LEFT JOIN TMP_SMT ON TMP_SMT.NAST_ID = ACTIVE_NAST.NAST_ID
+        ORDER BY 5
         """
         fdb_data = con_to_firebird(query)
         return render_template("index.html", action=action, fdb_data=fdb_data, title="гости", **context)
@@ -97,16 +98,16 @@ def detail_info(guest_id):
         ДЕТЕЙЛИТЕ НА СМЕТАТА, ВИКАТ СЕ В МОДАЛНИЯТ ДИАЛОГ
         """
         query = """
-		select
-		coalesce(usl.name_cyr, 'Търговски обект'),
-		sum((smetki_el.kol * ROUND(smetki_el.suma, 2)))
-		from SMETKI_EL
-		left join price on price.id = smetki_el.price_id
-		left join usl on usl.id = price.usl_id
-		inner join NAST on NAST.ID = SMETKI_EL.DEF_NAST_ID
-		where smetki_el.def_nast_id = ?
-		and not exists (select smt_pay_node.id from smt_pay_node where smt_pay_node.smetka_el_id = smetki_el.id)
-		group by usl.name_cyr
+        select
+        coalesce(usl.name_cyr, 'Търговски обект'),
+        sum((smetki_el.kol * ROUND(smetki_el.suma, 2)))
+        from SMETKI_EL
+        left join price on price.id = smetki_el.price_id
+        left join usl on usl.id = price.usl_id
+        inner join NAST on NAST.ID = SMETKI_EL.DEF_NAST_ID
+        where smetki_el.def_nast_id = ?
+        and not exists (select smt_pay_node.id from smt_pay_node where smt_pay_node.smetka_el_id = smetki_el.id)
+        group by usl.name_cyr
         """
         fdb_data_smetka_el = con_to_firebird(query, (guest_id,))
         detail_data = {}
@@ -188,7 +189,8 @@ def reservations():
             f_data = request.form["fdata"]
             l_data = request.form["ldata"]
 
-            dates = datetime.strptime(l_data, "%Y-%m-%d") - datetime.strptime(f_data, "%Y-%m-%d")
+            dates = datetime.strptime(
+                l_data, "%Y-%m-%d") - datetime.strptime(f_data, "%Y-%m-%d")
             for i in range(dates.days + 1):
                 day = datetime.strptime(f_data, "%Y-%m-%d") + timedelta(days=i)
                 for l in con_to_firebird(q, (str(day)[:-9], str(day)[:-9])):
@@ -368,7 +370,7 @@ def payment():
 SELECT
     
     MAIN.NAME,
-	MAIN.FOR_DATE,
+    MAIN.FOR_DATE,
 SUM(MAIN.SUMA)
 FROM
     (SELECT
@@ -548,6 +550,7 @@ def fak_detail(id):
 @app.route("/housekeeping", methods=["GET"])
 def housekeeping():
     if session.get("logged_in"):
+        employments = {}
         active_people_and_room = """
         SELECT COUNT(DISTINCT(NAST.room_id)) AS ROOM, COUNT(NAST.ROOM_ID) AS PEOPLE
         FROM ACTIVE_NAST
@@ -587,11 +590,42 @@ def housekeeping():
         dirty_room = """
         SELECT COUNT(*) FROM ROOMS WHERE ROOMS.clear = 0
         """
+        rooms_employment = """
+        with tmp1 as (
+         select
+         room_tip.name_cyr as t_type,
+         rooms.id as not_used,
+         rooms.room_tip_id as t_count
+         from room_tip
+         inner join rooms on rooms.room_tip_id = room_tip.id
+        )
+        select
+        tmp1.t_type,
+        count(tmp1.t_count) as ccc,
+        (SELECT
+            count(DISTINCT(NAST.room_id)) AS ROOM
+            FROM nast
+            where NAST.CHECK_IN_DATE <= current_date and
+            dateadd(NAST.DAYS day to NAST.CHECK_IN_DATE) >= current_date and
+            coalesce(NAST.LAST_OPR_TYPE, 1) in (1, 2, 8, 23, 202) and
+            NAST.IS_DELETED = '0' and
+            NAST.DOGOVOR_ID is not null
+            and nast.room_id = tmp1.not_used
+        ) as tmp_r
+        from tmp1
+        group by 1, tmp1.not_used
+        """
         room = con_to_firebird2(active_people_and_room)
         expected_in = con_to_firebird2(expected_room_and_people)
         expected_out = con_to_firebird2(expected_out_room_and_people)
         out_of_order = con_to_firebird2(out_of_order)
         dirtys = con_to_firebird2(dirty_room)
+        # rooms_emp = con_to_firebird(rooms_employment)
+        # for line in rooms_emp:
+        #     if line[0] not in employments:
+        #         employments[line[0]] = {"total": 0, "reserver": 0}
+        #     employments[line[0]]["total"] += line[1]
+        #     employments[line[0]]["reserver"] += line[2]
         return render_template(
             "housekeeping.html",
             room=room[0],
@@ -603,6 +637,7 @@ def housekeeping():
             out_people=expected_out[1],
             out_order=out_of_order[0],
             dirty=dirtys[0],
+            # rooms_emps_status=employments
         )
     else:
         return index()
