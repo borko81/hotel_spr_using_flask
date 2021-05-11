@@ -1,75 +1,104 @@
 {% extends 'base.html' %}
 {% block title %}Card Reservation{% endblock title %}
 {% block css %}
-<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+    integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
 <style>
     .greenBg {
         background: lightgreen;
     }
-    
+
     .table td {
         border: 1px solid #c0c0c0;
     }
-    .table td, .table th {
+
+    .table td,
+    .table th {
         width: 20px;
+        margin: 0;
     }
 
     .greenBg {
         border: none !important;
     }
 
-    .greenWithBorder{
+    .greenWithBorder {
         border-right: 1px solid black !important;
+    }
+
+    .table-scroll {
+        position: relative;
+
+    }
+
+    .fixed-side {
+        left: 0px;
+        position: sticky;
     }
 </style>
 {% endblock css %}
 {% block body %}
 <script>
-    document.getElementById("generalform").style.display="none";
+    document.getElementById("generalform").style.display = "none";
 </script>
 
-<table class="table">
-    <thead class="thead-dark">
-        <tr>
-            <th>Room</th>
-            {% for d in dates %}
-                <th>{{ d }}</th>
-            {% endfor %}
-        </tr>
-    </thead>
-    <tbody>
-        {% for r in rooms %}
+<div class="table-scroll">
+    <table class="table">
+        <thead class="thead-dark">
             <tr>
-                <td data-room={{ r[0] }}>{{ r[0] }}</td>
+                <th class="fixed-side">Room</th>
                 {% for d in dates %}
-                    <td data-id={{ d }}:{{ r[0] }}></td>
+                <th>{{ d }}</th>
                 {% endfor %}
             </tr>
-        {% endfor %}
-    </tbody>
-</table>
+        </thead>
+        <tbody>
+            {% for r in rooms %}
+            <tr>
+                <td data-room={{ r[0] }} class="fixed-side">{{ r[0] }}</td>
+                {% for d in dates %}
+                <td data-id={{ d }}:{{ r[0] }}></td>
+                {% endfor %}
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
 {% for line in data %}
 <script>
     // $("td:contains({{ line['room_name'] }})").addClass('greenBg');
 
     var room_name = "{{ line.get('room_name') }}";
     var in_house = "{{ line.get('in') }}";
-    var out_of_house = "{{ line.get('out') }}";
+    [i_d, i_m, i_y] = in_house.split('.');
+    in_house = new Date(i_y, i_m, i_d);
+    //alert(in_house);
 
-    $('.table td[data-id]').each(function(){
+    var out_of_house = "{{ line.get('out') }}";
+    [o_d, o_m, o_y] = out_of_house.split('.');
+    out_of_house = new Date(o_y, o_m, o_d);
+
+    var reserve_id = "{{ line.get('reserve') }}";
+
+    $('.table td[data-id]').each(function () {
         let found = $(this).attr('data-id');
         let counter_found = 0;
 
         [search_date, search_room_name] = found.split(':');
+        [s_d, s_m, s_y] = search_date.split('.');
+        search_date = new Date(s_y, s_m, s_d);
+        
 
-        if (search_room_name == room_name && search_date >= in_house && search_date <= out_of_house){
+        if (search_room_name == room_name && search_date >= in_house && search_date <= out_of_house) {
             counter_found += 1;
             $(this).addClass('greenBg');
-            if(counter_found == 1) {
-                $(this).addClass('greenWithBorder');
-            }
+            $(this).html(reserve_id);
+            // if(counter_found == 1) {
+            //     $(this).addClass('greenWithBorder');
+            // }
         }
-        
+
     });
 </script>
 {% endfor %}

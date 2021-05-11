@@ -170,7 +170,7 @@ def reservations():
             where nast.check_in_date between ? and ?
             and nast.last_opr_type not in (2, 4, 101)
             and nast.is_deleted = 0
-            and nast.id not in (select active_nast.nast_id from active_nast)
+            and NOT EXISTS(SELECT active_nast.nast_id from active_nast WHERE active_nast.nast_id = nast.id)
             group by 1,2,3,4,6,7,8,9,10,12
             """
             # Perspectivna zaetost
@@ -762,15 +762,16 @@ def reservations_card():
         select
         rooms.name as rooms,
         nast.check_in_date as check_in,
-        dateadd(nast.days day to nast.check_in_date) as check_out
+        dateadd(nast.days -1 day to nast.check_in_date) as check_out,
+        nast.reserve_id
         from nast
         inner join rooms on rooms.id = nast.room_id
         inner join reserve on reserve.id = nast.reserve_id
-        where nast.check_in_date between CURRENT_DATE and dateadd (90 day to current_date)
+        where nast.check_in_date between CURRENT_DATE and dateadd (60 day to current_date)
         and nast.last_opr_type not in (2, 4, 101)
         and nast.is_deleted = 0
         and nast.id not in (select active_nast.nast_id from active_nast)
-        group by 1, 2, 3
+        group by 1, 2, 3, 4
         """
         reserve = con_to_firebird(query_reserver)
         # data = [
@@ -779,7 +780,7 @@ def reservations_card():
         # ]
         data = []
         for line in reserve:
-            data.append({'room_name': line[0], 'in': str(line[1].strftime("%d.%m.%Y")), 'out': str(line[2].strftime("%d.%m.%Y"))})
+            data.append({'room_name': line[0], 'in': str(line[1].strftime("%d.%m.%Y")), 'out': str(line[2].strftime("%d.%m.%Y")), 'reserve': line[3]})
         rooms = con_to_firebird(query_rooms_names)
         return render_template('reservations_card.html', rooms=rooms, dates=generate_dates_range(), data=data)
     return index()
