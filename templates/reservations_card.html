@@ -1,0 +1,76 @@
+{% extends 'base.html' %}
+{% block title %}Card Reservation{% endblock title %}
+{% block css %}
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+<style>
+    .greenBg {
+        background: lightgreen;
+    }
+    
+    .table td {
+        border: 1px solid #c0c0c0;
+    }
+    .table td, .table th {
+        width: 20px;
+    }
+
+    .greenBg {
+        border: none !important;
+    }
+
+    .greenWithBorder{
+        border-right: 1px solid black !important;
+    }
+</style>
+{% endblock css %}
+{% block body %}
+<script>
+    document.getElementById("generalform").style.display="none";
+</script>
+
+<table class="table">
+    <thead class="thead-dark">
+        <tr>
+            <th>Room</th>
+            {% for d in dates %}
+                <th>{{ d }}</th>
+            {% endfor %}
+        </tr>
+    </thead>
+    <tbody>
+        {% for r in rooms %}
+            <tr>
+                <td data-room={{ r[0] }}>{{ r[0] }}</td>
+                {% for d in dates %}
+                    <td data-id={{ d }}:{{ r[0] }}></td>
+                {% endfor %}
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% for line in data %}
+<script>
+    // $("td:contains({{ line['room_name'] }})").addClass('greenBg');
+
+    var room_name = "{{ line.get('room_name') }}";
+    var in_house = "{{ line.get('in') }}";
+    var out_of_house = "{{ line.get('out') }}";
+
+    $('.table td[data-id]').each(function(){
+        let found = $(this).attr('data-id');
+        let counter_found = 0;
+
+        [search_date, search_room_name] = found.split(':');
+
+        if (search_room_name == room_name && search_date >= in_house && search_date <= out_of_house){
+            counter_found += 1;
+            $(this).addClass('greenBg');
+            if(counter_found == 1) {
+                $(this).addClass('greenWithBorder');
+            }
+        }
+        
+    });
+</script>
+{% endfor %}
+{% endblock %}

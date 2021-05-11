@@ -7,14 +7,30 @@ import datetime
 import time
 from datetime import date, timedelta
 from datetime import datetime
+#import datetime
 
-# ПОЛЗВА СЕ ЗА ПРОМЯНА НА ДАТТА ПО НАШИЯ СТАНДАРТ, МОЖЕ ДА СЕ ДОБАВЯТ И ДРУГО ФОРМАТИ
+# ПОЛЗВА СЕ ЗА ПРОМЯНА НА ДАТТА ПО НАШИЯ СТАНДАРТ, МОЖЕ ДА СЕ ДОБАВЯТ И ДРУГИ ФОРМАТИ
 context = {"now": int(time.time()), "strftime": time.strftime,
            "strptime": datetime.strptime}
 
 app = Flask(__name__)
 
 app.config["SECRET_KEY"] = "borko"
+
+# Some staff used for card reservation
+
+
+def generate_dates_range():
+    """
+        Generate list with dates for card
+    """
+    today = datetime.now().date()
+    dates = []
+    numdays = 90
+    for x in range(0, numdays):
+        new_date = today + timedelta(days=x)
+        dates.append(new_date.strftime("%d.%m.%Y"))
+    return dates
 
 
 @app.route("/insertdata/<string:name>")
@@ -735,6 +751,38 @@ def cart_dirty():
         return render_template('room_cleanup.html', context=context)
     else:
         return index()
+
+
+@app.route('/reservations_card')
+def reservations_card():
+    if session.get("logged_in") is True:
+        query_rooms_names = """select rooms.name, rooms.id from rooms order by 1"""
+        
+        query_reserver = """
+        select
+        rooms.name as rooms,
+        nast.check_in_date as check_in,
+        dateadd(nast.days day to nast.check_in_date) as check_out
+        from nast
+        inner join rooms on rooms.id = nast.room_id
+        inner join reserve on reserve.id = nast.reserve_id
+        where nast.check_in_date between CURRENT_DATE and dateadd (90 day to current_date)
+        and nast.last_opr_type not in (2, 4, 101)
+        and nast.is_deleted = 0
+        and nast.id not in (select active_nast.nast_id from active_nast)
+        group by 1, 2, 3
+        """
+        reserve = con_to_firebird(query_reserver)
+        # data = [
+        #     {'room_name': 'A1', 'in': '12.05.2021', 'out': '17.05.2021'},
+        #     {'room_name': '202', 'in': '14.05.2021', 'out': '16.05.2021'},
+        # ]
+        data = []
+        for line in reserve:
+            data.append({'room_name': line[0], 'in': str(line[1].strftime("%d.%m.%Y")), 'out': str(line[2].strftime("%d.%m.%Y"))})
+        rooms = con_to_firebird(query_rooms_names)
+        return render_template('reservations_card.html', rooms=rooms, dates=generate_dates_range(), data=data)
+    return index()
 
 
 if __name__ == "__main__":
