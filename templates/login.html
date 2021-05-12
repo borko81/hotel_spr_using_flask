@@ -2,18 +2,28 @@
 <html lang="en">
 <head>
 	<meta charset="UTF-8">
-	<title>Document</title>
+	<title>Login</title>
 	<link rel="stylesheet" href="{{ url_for('static', filename='css.css') }}">
 </head>
 <body>
+	
 	<div id="login-div">
 		<form action="/login" method="POST">
 			<div class="form-holder">
 				<input type="text" name="username" class="form-css" placeholder="Username">
 				<input type="password" name="password" class="form-css" placeholder="Password">
 			</div>
-				<button class="submit-btn">Log in</button>
+				<button class="submit-btn">LOG IN</button>
 		</form>
+		{% with messages = get_flashed_messages() %}
+  		{% if messages %}
+    		<ul class="myalert-danger">
+				{% for message in messages %}
+					<li>{{ message|safe }}</li>
+				{% endfor %}
+    		</ul>
+  		{% endif %}
+	{% endwith %}
 	</div>
 </body>
 </html>

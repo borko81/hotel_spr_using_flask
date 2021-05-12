@@ -1,13 +1,12 @@
-from flask import Flask, redirect, url_for, render_template, request, session
-from flask import jsonify
+from flask import Flask, redirect, url_for, render_template, request, session, flash
 from firebird.connectfdb import con_to_firebird, con_to_firebird2
 
 from collections import defaultdict
 import json
 import datetime
 import time
-from datetime import date, timedelta
-from datetime import datetime
+from datetime import timedelta, datetime
+
 
 # ПОЛЗВА СЕ ЗА ПРОМЯНА НА ДАТТА ПО НАШИЯ СТАНДАРТ, МОЖЕ ДА СЕ ДОБАВЯТ И ДРУГИ ФОРМАТИ
 context = {"now": int(time.time()), "strftime": time.strftime,
@@ -15,7 +14,7 @@ context = {"now": int(time.time()), "strftime": time.strftime,
 
 app = Flask(__name__)
 
-app.config["SECRET_KEY"] = "borko"
+app.config["SECRET_KEY"] = "Bork@"
 
 # Some staff used for card reservation
 
@@ -26,7 +25,7 @@ def generate_dates_range():
     """
     today = datetime.now().date()
     dates = []
-    numdays = 90
+    numdays = 40
     for x in range(0, numdays):
         new_date = today + timedelta(days=x)
         dates.append(new_date.strftime("%d.%m.%Y"))
@@ -109,7 +108,7 @@ def info():
 
 @app.route("/info/<int:guest_id>")
 def detail_info(guest_id):
-    if session.get("logged_in") == True:
+    if session.get("logged_in"):
         """
         ДЕТЕЙЛИТЕ НА СМЕТАТА, ВИКАТ СЕ В МОДАЛНИЯТ ДИАЛОГ
         """
@@ -140,8 +139,8 @@ def reservations():
     """
     СПИСЪК С РЕЗЕРАЦИИ
     """
-    if session.get("logged_in") == True:
-        action = "/reservations"
+    if session.get("logged_in"):
+        # action = "/reservations"
         if request.method == "GET":
             return redirect(url_for("insertdata"))
         else:
@@ -209,8 +208,8 @@ def reservations():
                 l_data, "%Y-%m-%d") - datetime.strptime(f_data, "%Y-%m-%d")
             for i in range(dates.days + 1):
                 day = datetime.strptime(f_data, "%Y-%m-%d") + timedelta(days=i)
-                for l in con_to_firebird(q, (str(day)[:-9], str(day)[:-9])):
-                    result[str(day)[:-9]].append(l)
+                for line in con_to_firebird(q, (str(day)[:-9], str(day)[:-9])):
+                    result[str(day)[:-9]].append(line)
             Result = dict(result)
 
             fdb_reservations = con_to_firebird(
@@ -238,8 +237,8 @@ def usls():
     """
     НАЧИСЛЕНИ И ПЛАТЕНО УСЛУГИ ЗА ПЕРИДО, ПОЛЗВАТ СЕ 2 КУЕРИТЕ, ЩОТО МИСЛЯ ДА СЕ ДОБАВЯ ОЩЕ!
     """
-    if session.get("logged_in") == True:
-        action = "/usls"
+    if session.get("logged_in"):
+        # action = "/usls"
         if request.method == "GET":
             return redirect(url_for("insertdata"))
         else:
@@ -332,8 +331,8 @@ def room_landing():
     """
     ЗАЕТИ ПОМЕЩЕНИЯ ЗА ПЕРИОДА
     """
-    if session.get("logged_in") == True:
-        action = "/room_landing"
+    if session.get("logged_in"):
+        # action = "/room_landing"
         title = "Заети стаи"
         if request.method == "GET":
             return redirect(url_for("insertdata"))
@@ -380,11 +379,10 @@ def room_landing():
 
 @app.route("/payment", methods=["POST", "GET"])
 def payment():
-    if session.get("logged_in") == True:
+    if session.get("logged_in"):
         if request.method == "POST":
             query = """
             SELECT
-                
                 MAIN.NAME,
                 MAIN.FOR_DATE,
             SUM(MAIN.SUMA)
@@ -406,7 +404,6 @@ def payment():
                     INNER JOIN OPR ON OPR.ID = SMETKI_EL.OPR_ID
                     LEFT JOIN PRICE ON PRICE.ID = SMETKI_EL.PRICE_ID
                     LEFT JOIN USL ON USL.ID = PRICE.USL_ID
-                
                 WHERE
                     NOT EXISTS(SELECT SMT.ID FROM SMT_PAY_NODE SMT WHERE SMT.SMETKA_EL_ID = SMETKI_EL.ID)
                     ) AS MAIN
@@ -430,7 +427,7 @@ def payment():
 
 @app.route("/payment/<string:room_name>/<string:kasa>", methods=["GET", "POST"])
 def paymnet_id(room_name, kasa):
-    if session.get("logged_in") == True:
+    if session.get("logged_in"):
         query_ts_smetka_el = """
         SELECT ts_kits.name_cyr,
         opr.date_time,
@@ -474,7 +471,7 @@ def fak():
     УСЛУГИ ПРЕЗ ПЕРИОДА
     """
     if session.get("logged_in") is True:
-        action = "/fak"
+        # action = "/fak"
         title = "фактури"
         if request.method == "GET":
             return redirect(url_for("insertdata"))
@@ -531,7 +528,7 @@ def fak_detail(id):
         where fak.number = ?
         """
         fdb_faktura_detail = con_to_firebird(q, (id,))
-        detail_data = defaultdict(list)
+        # detail_data = defaultdict(list)
 
         def json_format(id, name, kol, price, suma_dds, suma_total, dds):
             r = {
@@ -566,7 +563,7 @@ def fak_detail(id):
 @app.route("/housekeeping", methods=["GET"])
 def housekeeping():
     if session.get("logged_in"):
-        employments = {}
+        # employments = {}
         active_people_and_room = """
         SELECT COUNT(DISTINCT(NAST.room_id)) AS ROOM, COUNT(NAST.ROOM_ID) AS PEOPLE
         FROM ACTIVE_NAST
@@ -607,42 +604,37 @@ def housekeeping():
         dirty_room = """
         SELECT COUNT(*) FROM ROOMS WHERE ROOMS.clear = 0
         """
-        rooms_employment = """
-        with tmp1 as (
-         select
-         room_tip.name_cyr as t_type,
-         rooms.id as not_used,
-         rooms.room_tip_id as t_count
-         from room_tip
-         inner join rooms on rooms.room_tip_id = room_tip.id
-        )
-        select
-        tmp1.t_type,
-        count(tmp1.t_count) as ccc,
-        (SELECT
-            count(DISTINCT(NAST.room_id)) AS ROOM
-            FROM nast
-            where NAST.CHECK_IN_DATE <= current_date and
-            dateadd(NAST.DAYS day to NAST.CHECK_IN_DATE) >= current_date and
-            coalesce(NAST.LAST_OPR_TYPE, 1) in (1, 2, 8, 23, 202) and
-            NAST.IS_DELETED = '0' and
-            NAST.DOGOVOR_ID is not null
-            and nast.room_id = tmp1.not_used
-        ) as tmp_r
-        from tmp1
-        group by 1, tmp1.not_used
-        """
+        # rooms_employment = """
+        # with tmp1 as (
+        #  select
+        #  room_tip.name_cyr as t_type,
+        #  rooms.id as not_used,
+        #  rooms.room_tip_id as t_count
+        #  from room_tip
+        #  inner join rooms on rooms.room_tip_id = room_tip.id
+        # )
+        # select
+        # tmp1.t_type,
+        # count(tmp1.t_count) as ccc,
+        # (SELECT
+        #     count(DISTINCT(NAST.room_id)) AS ROOM
+        #     FROM nast
+        #     where NAST.CHECK_IN_DATE <= current_date and
+        #     dateadd(NAST.DAYS day to NAST.CHECK_IN_DATE) >= current_date and
+        #     coalesce(NAST.LAST_OPR_TYPE, 1) in (1, 2, 8, 23, 202) and
+        #     NAST.IS_DELETED = '0' and
+        #     NAST.DOGOVOR_ID is not null
+        #     and nast.room_id = tmp1.not_used
+        # ) as tmp_r
+        # from tmp1
+        # group by 1, tmp1.not_used
+        # """
         room = con_to_firebird2(active_people_and_room)
         expected_in = con_to_firebird2(expected_room_and_people)
         expected_out = con_to_firebird2(expected_out_room_and_people)
         out_of_order = con_to_firebird2(out_of_order)
         dirtys = con_to_firebird2(dirty_room)
-        # rooms_emp = con_to_firebird(rooms_employment)
-        # for line in rooms_emp:
-        #     if line[0] not in employments:
-        #         employments[line[0]] = {"total": 0, "reserver": 0}
-        #     employments[line[0]]["total"] += line[1]
-        #     employments[line[0]]["reserver"] += line[2]
+
         return render_template(
             "housekeeping.html",
             room=room[0],
@@ -758,7 +750,7 @@ def cart_dirty():
 def reservations_card():
     if session.get("logged_in") is True:
         query_rooms_names = """select rooms.name, rooms.id from rooms order by 1"""
-        
+
         query_reserver = """
         select
         rooms.name as rooms,
@@ -787,7 +779,7 @@ def reservations_card():
             data[room].append({'id': id_house, 'in': in_house, 'out': out})
 
         rooms = con_to_firebird(query_rooms_names)
-        
+
         # return jsonify(data)
         return render_template('reservations_card.html', rooms=rooms, dates=generate_dates_range(), data=data)
     return index()
