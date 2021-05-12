@@ -1,4 +1,5 @@
-from flask import Flask, redirect, url_for, render_template, request, Response, session, abort, flash
+from flask import Flask, redirect, url_for, render_template, request, session
+from flask import jsonify
 from firebird.connectfdb import con_to_firebird, con_to_firebird2
 
 from collections import defaultdict
@@ -7,7 +8,6 @@ import datetime
 import time
 from datetime import date, timedelta
 from datetime import datetime
-#import datetime
 
 # ПОЛЗВА СЕ ЗА ПРОМЯНА НА ДАТТА ПО НАШИЯ СТАНДАРТ, МОЖЕ ДА СЕ ДОБАВЯТ И ДРУГИ ФОРМАТИ
 context = {"now": int(time.time()), "strftime": time.strftime,
@@ -68,7 +68,7 @@ def logout():
 @app.route("/info", methods=["GET", "POST"])
 def info():
     """Списък с настанените гости в списъка гости"""
-    if session.get("logged_in") == True:
+    if session.get("logged_in") is True:
         action = "/info"
         query = """
         WITH TMP_SMT AS (
@@ -383,35 +383,35 @@ def payment():
     if session.get("logged_in") == True:
         if request.method == "POST":
             query = """
-SELECT
-    
-    MAIN.NAME,
-    MAIN.FOR_DATE,
-SUM(MAIN.SUMA)
-FROM
-    (SELECT
-        SMETKI_EL.DEF_NAST_ID,
-        COALESCE(SMETKI_EL.FOR_DATE, CAST(OPR.DATE_TIME AS DATE)) AS FOR_DATE,
-        ROUND(SMETKI_EL.KOL * SMETKI_EL.SUMA, 2) AS SUMA,
-        COALESCE(USL.NAME_CYR, (SELECT
-                TS_KASA.NAME_CYR
+            SELECT
+                
+                MAIN.NAME,
+                MAIN.FOR_DATE,
+            SUM(MAIN.SUMA)
             FROM
-                TS_SMETKA INNER JOIN TS_KASA ON TS_KASA.ID = TS_SMETKA.TS_KASA_ID
-            WHERE
-                TS_SMETKA.SMETKA_EL_ID = SMETKI_EL.ID)) AS NAME
-    FROM
-        ACTIVE_NAST INNER JOIN NAST ON NAST.ID = ACTIVE_NAST.NAST_ID AND DATEADD(DAY, NAST.DAYS, CHECK_IN_DATE) >= CURRENT_DATE
-        INNER JOIN ROOMS ON ROOMS.ID = NAST.ROOM_ID AND UPPER(ROOMS.NAME) = UPPER(?)
-        INNER JOIN SMETKI_EL ON SMETKI_EL.DEF_NAST_ID = NAST.ID
-        INNER JOIN OPR ON OPR.ID = SMETKI_EL.OPR_ID
-        LEFT JOIN PRICE ON PRICE.ID = SMETKI_EL.PRICE_ID
-        LEFT JOIN USL ON USL.ID = PRICE.USL_ID
-    
-    WHERE
-        NOT EXISTS(SELECT SMT.ID FROM SMT_PAY_NODE SMT WHERE SMT.SMETKA_EL_ID = SMETKI_EL.ID)
-        ) AS MAIN
-GROUP BY 1,2
-ORDER BY 1,2
+                (SELECT
+                    SMETKI_EL.DEF_NAST_ID,
+                    COALESCE(SMETKI_EL.FOR_DATE, CAST(OPR.DATE_TIME AS DATE)) AS FOR_DATE,
+                    ROUND(SMETKI_EL.KOL * SMETKI_EL.SUMA, 2) AS SUMA,
+                    COALESCE(USL.NAME_CYR, (SELECT
+                            TS_KASA.NAME_CYR
+                        FROM
+                            TS_SMETKA INNER JOIN TS_KASA ON TS_KASA.ID = TS_SMETKA.TS_KASA_ID
+                        WHERE
+                            TS_SMETKA.SMETKA_EL_ID = SMETKI_EL.ID)) AS NAME
+                FROM
+                    ACTIVE_NAST INNER JOIN NAST ON NAST.ID = ACTIVE_NAST.NAST_ID AND DATEADD(DAY, NAST.DAYS, CHECK_IN_DATE) >= CURRENT_DATE
+                    INNER JOIN ROOMS ON ROOMS.ID = NAST.ROOM_ID AND UPPER(ROOMS.NAME) = UPPER(?)
+                    INNER JOIN SMETKI_EL ON SMETKI_EL.DEF_NAST_ID = NAST.ID
+                    INNER JOIN OPR ON OPR.ID = SMETKI_EL.OPR_ID
+                    LEFT JOIN PRICE ON PRICE.ID = SMETKI_EL.PRICE_ID
+                    LEFT JOIN USL ON USL.ID = PRICE.USL_ID
+                
+                WHERE
+                    NOT EXISTS(SELECT SMT.ID FROM SMT_PAY_NODE SMT WHERE SMT.SMETKA_EL_ID = SMETKI_EL.ID)
+                    ) AS MAIN
+            GROUP BY 1,2
+            ORDER BY 1,2
             """
             query_get_kasa_name = """select ts_kasa.name_lat from ts_kasa"""
             roomname = request.form["roomsinfo"]
@@ -473,7 +473,7 @@ def fak():
     """
     УСЛУГИ ПРЕЗ ПЕРИОДА
     """
-    if session.get("logged_in") == True:
+    if session.get("logged_in") is True:
         action = "/fak"
         title = "фактури"
         if request.method == "GET":
@@ -520,7 +520,7 @@ def fak():
 
 @app.route("/fak/<string:id>", methods=["GET", "POST"])
 def fak_detail(id):
-    if session.get("logged_in") == True:
+    if session.get("logged_in") is True:
         q = """
         select
         fak.number,
@@ -578,12 +578,13 @@ def housekeeping():
         NAST.DOGOVOR_ID is not null
         """
         expected_room_and_people = """
-        SELECT count(distinct NAST.room_id) AS ROOM, count(NAST.ROOM_ID) AS PEOPLE
+        SELECT
+        count(distinct(NAST.room_id)) AS ROOM,
+        count(NAST.ID) AS PEOPLE
         FROM nast
-        where NAST.CHECK_IN_DATE = current_date and
-        coalesce(NAST.LAST_OPR_TYPE, 1) in (1, 2, 8, 23, 202) and
-        NAST.IS_DELETED = '0' and
-        NAST.DOGOVOR_ID is not null
+        where NAST.CHECK_IN_DATE = current_date
+        and NAST.IS_DELETED = '0'
+        and NAST.DOGOVOR_ID is not null
         and not exists(select active_nast.nast_id from active_nast where nast.id = active_nast.nast_id)
         """
         expected_out_room_and_people = """
@@ -767,21 +768,27 @@ def reservations_card():
         from nast
         inner join rooms on rooms.id = nast.room_id
         inner join reserve on reserve.id = nast.reserve_id
-        where nast.check_in_date between CURRENT_DATE and dateadd (60 day to current_date)
+        where nast.check_in_date between CURRENT_DATE and dateadd (30 day to current_date)
         and nast.last_opr_type not in (2, 4, 101)
         and nast.is_deleted = 0
         and nast.id not in (select active_nast.nast_id from active_nast)
         group by 1, 2, 3, 4
+        order by 1, 2, 3, 4
         """
         reserve = con_to_firebird(query_reserver)
-        # data = [
-        #     {'room_name': 'A1', 'in': '12.05.2021', 'out': '17.05.2021'},
-        #     {'room_name': '202', 'in': '14.05.2021', 'out': '16.05.2021'},
-        # ]
-        data = []
+
+        data = {}
         for line in reserve:
-            data.append({'room_name': line[0], 'in': str(line[1].strftime("%d.%m.%Y")), 'out': str(line[2].strftime("%d.%m.%Y")), 'reserve': line[3]})
+            room, in_house, out, id_house = line
+            in_house = str(in_house.strftime("%d.%m.%Y"))
+            out = str(out.strftime("%d.%m.%Y"))
+            if room not in data:
+                data[room] = []
+            data[room].append({'id': id_house, 'in': in_house, 'out': out})
+
         rooms = con_to_firebird(query_rooms_names)
+        
+        # return jsonify(data)
         return render_template('reservations_card.html', rooms=rooms, dates=generate_dates_range(), data=data)
     return index()
 

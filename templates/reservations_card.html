@@ -42,6 +42,7 @@
     document.getElementById("generalform").style.display = "none";
 </script>
 
+
 <div class="table-scroll">
     <table class="table">
         <thead class="thead-dark">
@@ -65,41 +66,55 @@
     </table>
 </div>
 
-{% for line in data %}
-<script>
-    // $("td:contains({{ line['room_name'] }})").addClass('greenBg');
-
-    var room_name = "{{ line.get('room_name') }}";
-    var in_house = "{{ line.get('in') }}";
-    [i_d, i_m, i_y] = in_house.split('.');
-    in_house = new Date(i_y, i_m, i_d);
-    //alert(in_house);
-
-    var out_of_house = "{{ line.get('out') }}";
-    [o_d, o_m, o_y] = out_of_house.split('.');
-    out_of_house = new Date(o_y, o_m, o_d);
-
-    var reserve_id = "{{ line.get('reserve') }}";
-
-    $('.table td[data-id]').each(function () {
-        let found = $(this).attr('data-id');
-        let counter_found = 0;
-
-        [search_date, search_room_name] = found.split(':');
-        [s_d, s_m, s_y] = search_date.split('.');
-        search_date = new Date(s_y, s_m, s_d);
-        
-
-        if (search_room_name == room_name && search_date >= in_house && search_date <= out_of_house) {
-            counter_found += 1;
-            $(this).addClass('greenBg');
-            $(this).html(reserve_id);
-            // if(counter_found == 1) {
-            //     $(this).addClass('greenWithBorder');
-            // }
-        }
-
-    });
-</script>
+{#
+{% for line, value in data.items() %}
+    {{ line }}
+    {% for l in value %}
+        {{ l }}<br/ >
+    {% endfor %}
 {% endfor %}
+#}
+
+
+
+{% for line, value in data.items() %}
+{% for l in value %}
+    <script>
+
+        var room_name = "{{ line }}";
+
+        var in_house = "{{ l.get('in') }}";
+
+        [i_d, i_m, i_y] = in_house.split('.');
+
+        in_house = new Date(i_y, i_m, i_d);
+        //alert(in_house);
+
+        var out_of_house = "{{ l.get('out') }}";
+
+        [o_d, o_m, o_y] = out_of_house.split('.');
+        out_of_house = new Date(o_y, o_m, o_d);
+
+        var reserve_id = {{ l.get('id') }};
+
+        $('.table td[data-id]').each(function () {
+            let found = $(this).attr('data-id');
+            let counter_found = 0;
+
+            [search_date, search_room_name] = found.split(':');
+            [s_d, s_m, s_y] = search_date.split('.');
+            search_date = new Date(s_y, s_m, s_d);
+            
+
+            if (search_room_name == room_name && search_date >= in_house && search_date <= out_of_house) {
+                counter_found += 1;
+                $(this).addClass('greenBg');
+                $(this).html(reserve_id);
+            }
+
+        });
+    </script>
+{% endfor %}
+{% endfor %}
+
 {% endblock %}
