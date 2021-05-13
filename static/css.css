@@ -11,6 +11,8 @@
 	list-style-type: none;
 	text-align: center;
 	text-transform: uppercase;
+	border: 2px solid darkred;
+	border-radius: 3px;
 }
 
 body {

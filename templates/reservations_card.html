@@ -28,11 +28,16 @@
 
     .table-scroll {
         position: relative;
+        height: 720px;
 
     }
 
     .fixed-side {
         left: 0px;
+        position: sticky;
+    }
+    .fixed-side-up {
+        top: 0px;
         position: sticky;
     }
 </style>
@@ -49,7 +54,7 @@
             <tr>
                 <th class="fixed-side">Room</th>
                 {% for d in dates %}
-                <th>{{ d }}</th>
+                <th class="fixed-side-up">{{ d }}</th>
                 {% endfor %}
             </tr>
         </thead>

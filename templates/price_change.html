@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+{% block title %}Change Price{% endblock title %}
+{% block css %}{% endblock css %}
+
+{% block body %}
+    <script>
+        document.getElementById("generalform").style.display="none";
+    </script>
+    <table class="activenast">
+        <tr class="tableinfo">
+			<th>Дата</th>
+			<th>Стая</th>
+			<th>Оператор</th>
+			<th>Стара цена</th>
+			<th>Нова цена</th>
+		</tr>
+        {% for mistake in mistakes %}
+            <tr>
+                <td class="tabletd">
+                    {{ mistake[0].strftime('%d.%m.%Y %H:%M') }}
+                </td>
+                <td class="tabletd">
+                    {{ mistake[1] }}
+                </td>
+                <td class="tabletd">
+                    {{ mistake[2] }}
+                </td>
+                <td class="tabletd">
+                    {{ '%0.2f' % mistake[3]|float }}
+                </td>
+                {% if mistake[4] < mistake[3] %}
+                    <td class="tabletd occupancy">
+                        {{ '%0.2f' % mistake[4]|float }}
+                    </td>
+                {% else %}
+                    <td class="tabletd maintenance_room">
+                        {{ '%0.2f' % mistake[4]|float }}
+                    </td>
+                {% endif %}
+            </tr>
+        {% endfor %}
+    </table>
+{% endblock body %}

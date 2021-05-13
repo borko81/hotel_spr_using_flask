@@ -51,6 +51,7 @@ def index():
 @app.route("/login", methods=["POST"])
 def login():
     if request.form["password"] == "buratino" and request.form["username"] == "buratino":
+        session.permanent = False
         session["logged_in"] = True
         return redirect(url_for("housekeeping"))
     else:
@@ -784,6 +785,30 @@ def reservations_card():
         return render_template('reservations_card.html', rooms=rooms, dates=generate_dates_range(), data=data)
     return index()
 
+@app.route('/price_change', methods=["GET", "POST"])
+def price_change():
+    if session.get("logged_in") is True:
+        if request.method == "GET":
+            return redirect(url_for("insertdata"))
+        f_data = request.form["fdata"]
+        l_data = request.form["ldata"]
+        query = """
+        select
+        nast_edit.dt_log,
+        rooms.name,
+        users.name_cyr,
+        nast_edit.old_price,
+        nast_edit.new_price
+        from nast_edit
+        inner join users on users.id = nast_edit.user_id
+        inner join nast on nast.id = nast_edit.nast_id
+        inner join rooms on rooms.id = nast.room_id
+        where cast(nast_edit.dt_log as date) between ? and ?
+        and nast_edit.old_price != nast_edit.new_price
+        """
+        mistake = con_to_firebird(query, (f_data, l_data, ))
+        return render_template('price_change.html', mistakes=mistake)
+    return index()
 
 if __name__ == "__main__":
     app.run(ssl_context=('cert.pem', 'key.pem'), host='0.0.0.0', debug=True)
