@@ -202,8 +202,8 @@ def reservations():
             """
             result = defaultdict(list)
             # End of perp zaetos
-            f_data = request.form["fdata"]
-            l_data = request.form["ldata"]
+            f_data = request.form["fdata"] or str(datetime.today().date())
+            l_data = request.form["ldata"] or str(datetime.today().date())
 
             dates = datetime.strptime(
                 l_data, "%Y-%m-%d") - datetime.strptime(f_data, "%Y-%m-%d")
@@ -298,8 +298,8 @@ def usls():
             opr.id != '0'
             group by 1
                 """
-            f_data = request.form["fdata"]
-            l_data = request.form["ldata"]
+            f_data = request.form["fdata"] or str(datetime.today().date())
+            l_data = request.form["ldata"] or str(datetime.today().date())
             fdb_reservations_paid = con_to_firebird(
                 query_paid,
                 (
@@ -357,8 +357,8 @@ def room_landing():
             from TABLE1
             group by TABLE1.name, TABLE1.dogovor
             """
-            f_data = request.form["fdata"]
-            l_data = request.form["ldata"]
+            f_data = request.form["fdata"] or str(datetime.today().date())
+            l_data = request.form["ldata"] or str(datetime.today().date())
             fdb_room_landing = con_to_firebird(
                 query,
                 (
@@ -499,8 +499,8 @@ def fak():
             inner join PAY_TIP on PAY_TIP.ID = FAK.V_BROI
             where cast(OPR.DATE_TIME as date) between ? and ?
             """
-            f_data = request.form["fdata"]
-            l_data = request.form["ldata"]
+            f_data = request.form["fdata"] or str(datetime.today().date())
+            l_data = request.form["ldata"] or str(datetime.today().date())
             fdb_fakturi = con_to_firebird(
                 q,
                 (
@@ -790,8 +790,8 @@ def price_change():
     if session.get("logged_in") is True:
         if request.method == "GET":
             return redirect(url_for("insertdata"))
-        f_data = request.form["fdata"]
-        l_data = request.form["ldata"]
+        f_data = request.form["fdata"] or str(datetime.today().date())
+        l_data = request.form["ldata"] or str(datetime.today().date())
         query = """
         select
         nast_edit.dt_log,

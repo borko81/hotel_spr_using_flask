@@ -72,7 +72,7 @@
 			const id = $(this).data('id')
 			const result = $('#detail_result')
 			result.empty()
-			$('#smetka').text(`Сметка детаили ${id}`)
+			$('#smetka').text(`Детаили : ${id}`)
 			url = '/info/' + id
 			$.ajax({
 				url: url,
