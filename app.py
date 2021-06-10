@@ -1,3 +1,4 @@
+# import module's
 from flask import Flask, redirect, url_for, render_template, request, session, flash
 from firebird.connectfdb import con_to_firebird, con_to_firebird2
 
@@ -8,7 +9,7 @@ import time
 from datetime import timedelta, datetime
 
 
-# ПОЛЗВА СЕ ЗА ПРОМЯНА НА ДАТТА ПО НАШИЯ СТАНДАРТ, МОЖЕ ДА СЕ ДОБАВЯТ И ДРУГИ ФОРМАТИ
+# ПОЛЗВА СЕ ЗА ПРОМЯНА НА ДАТА ПО НАШИЯ СТАНДАРТ, МОЖЕ ДА СЕ ДОБАВЯТ И ДРУГИ ФОРМАТИ
 context = {"now": int(time.time()), "strftime": time.strftime,
            "strptime": datetime.strptime}
 
@@ -21,7 +22,7 @@ app.config["SECRET_KEY"] = "Bork@"
 
 def generate_dates_range():
     """
-        Generate list with dates for card
+        Generate list with dates for card, use in reservation card template
     """
     today = datetime.now().date()
     dates = []
@@ -42,6 +43,9 @@ def insertdata(name):
 
 @app.route("/", methods=["GET"])
 def index():
+    """
+        check user is authenticated or not, if not return to login form
+    """
     if not session.get("logged_in"):
         return render_template("login.html")
     else:
@@ -50,6 +54,7 @@ def index():
 
 @app.route("/login", methods=["POST"])
 def login():
+    """ Login page """
     if request.form["password"] == "buratino" and request.form["username"] == "buratino":
         session.permanent = False
         session["logged_in"] = True
@@ -61,6 +66,7 @@ def login():
 
 @app.route("/logout")
 def logout():
+    """ Logount function """
     session["logged_in"] = False
     return index()
 
@@ -111,7 +117,7 @@ def info():
 def detail_info(guest_id):
     if session.get("logged_in"):
         """
-        ДЕТЕЙЛИТЕ НА СМЕТАТА, ВИКАТ СЕ В МОДАЛНИЯТ ДИАЛОГ
+        ДЕТЕЙЛИТЕ НА СМЕТKАTA, ВИКАТ СЕ В МОДАЛНИЯТ ДИАЛОГ НА GUEST ТЕМПЛЕИТА
         """
         query = """
         select
@@ -138,7 +144,7 @@ def detail_info(guest_id):
 @app.route("/reservations", methods=["GET", "POST"])
 def reservations():
     """
-    СПИСЪК С РЕЗЕРАЦИИ
+    СПИСЪК С РЕЗЕРАЦИИ, ТАБЛИЦА
     """
     if session.get("logged_in"):
         # action = "/reservations"
@@ -173,7 +179,7 @@ def reservations():
             and NOT EXISTS(SELECT active_nast.nast_id from active_nast WHERE active_nast.nast_id = nast.id)
             group by 1,2,3,4,6,7,8,9,10,12
             """
-            # Perspectivna zaetost
+            # ПЕРСПЕКТИВНА ЗАЕТОСТ, СПРЯМО ЗАДАДЕНИЯ ПЕРИОД НА СПИСЪК РЕЗЕРВАЦИИ, АКО ОПРЕДЕЛЕНА СТАЯ Я НЯМА В ОБЩИЯ ПЛАН НЕ СЕ ЗАРЕЖДА!
             q = """
             with table_one as
             (
@@ -201,7 +207,8 @@ def reservations():
 
             """
             result = defaultdict(list)
-            # End of perp zaetos
+            # КРАИ ПЕРСПЕКТИВНА ЗАЕТОСТ
+            # ВЗЕМА ВЪВЕДЕНИТЕ ОТ ПОТРЕБИТЕЛЯ ДАТИ, АКО Е ПРАЗНО ПОЛЕ ВЪВЕЖДА ДНЕШНА ДАТА
             f_data = request.form["fdata"] or str(datetime.today().date())
             l_data = request.form["ldata"] or str(datetime.today().date())
 
@@ -236,7 +243,7 @@ def reservations():
 @app.route("/usls", methods=["GET", "POST"])
 def usls():
     """
-    НАЧИСЛЕНИ И ПЛАТЕНО УСЛУГИ ЗА ПЕРИДО, ПОЛЗВАТ СЕ 2 КУЕРИТЕ, ЩОТО МИСЛЯ ДА СЕ ДОБАВЯ ОЩЕ!
+    НАЧИСЛЕНИ И ПЛАТЕНИ УСЛУГИ ЗА ПЕРИОД, ПОЛЗВАТ СЕ 2 КУЕРИТА, ЩОТО МИСЛЯ ДА СЕ ДОБАВЯ ОЩЕ!
     """
     if session.get("logged_in"):
         # action = "/usls"
@@ -380,6 +387,7 @@ def room_landing():
 
 @app.route("/payment", methods=["POST", "GET"])
 def payment():
+    """ ГОСТА СИ ВЪВЕЖДА СТАЯТА, ПОКАЗВА МУ СЕ ДЪЛЖИМАТА СМЕТКА. ИДЕЯТА Е ДА ЗАМЕСТИ ПРОФОРМА СМЕТКА """
     if session.get("logged_in"):
         if request.method == "POST":
             query = """
@@ -469,7 +477,7 @@ def paymnet_id(room_name, kasa):
 @app.route("/fak", methods=["GET", "POST"])
 def fak():
     """
-    УСЛУГИ ПРЕЗ ПЕРИОДА
+    ФАКТУРИ ИЗДАДЕНИ ЗА ПЕРИОДА
     """
     if session.get("logged_in") is True:
         # action = "/fak"
@@ -518,6 +526,7 @@ def fak():
 
 @app.route("/fak/<string:id>", methods=["GET", "POST"])
 def fak_detail(id):
+    """ ДЕТАИЛИТЕ ПО ФАКТУРИТЕ, СЛЕД КАТО СЕ НАТИСНЕ ВЪРХУ НОМЕРА НА СЪИТВЕТНА ФАКТУРА В ТЕМПЛЕИТА ЗА ФАКТУРИ """
     if session.get("logged_in") is True:
         q = """
         select
@@ -563,6 +572,7 @@ def fak_detail(id):
 
 @app.route("/housekeeping", methods=["GET"])
 def housekeeping():
+    """ ХАУСЕКИПИНГ """
     if session.get("logged_in"):
         # employments = {}
         active_people_and_room = """
@@ -655,6 +665,7 @@ def housekeeping():
 
 @app.route("/dirty", methods=["GET"])
 def dirty():
+    """ НЕПОЧИСТЕНИ ПОМЕЩЕНИЯ """
     if session.get("logged_in"):
         rooms_status = """
         select
@@ -702,6 +713,7 @@ def dirty():
 
 @app.route('/cart_dirty', methods=['GET'])
 def cart_dirty():
+    """ НЕПОЧИСТЕНИ ПОМЕЩЕНИЯ 2-И ВАРИЯНТ """
     if session.get("logged_in"):
         rooms_status = """
         select
@@ -749,6 +761,7 @@ def cart_dirty():
 
 @app.route('/reservations_card')
 def reservations_card():
+    """ КАРТА РЕЗЕРВАЦИИ """
     if session.get("logged_in") is True:
         query_rooms_names = """select rooms.name, rooms.id from rooms order by 1"""
 
@@ -785,8 +798,10 @@ def reservations_card():
         return render_template('reservations_card.html', rooms=rooms, dates=generate_dates_range(), data=data)
     return index()
 
+
 @app.route('/price_change', methods=["GET", "POST"])
 def price_change():
+    """ ПРОМЯНА НА ЦЕНА ОТ ОПЕРАТОР """
     if session.get("logged_in") is True:
         if request.method == "GET":
             return redirect(url_for("insertdata"))
@@ -809,6 +824,7 @@ def price_change():
         mistake = con_to_firebird(query, (f_data, l_data, ))
         return render_template('price_change.html', mistakes=mistake)
     return index()
+
 
 if __name__ == "__main__":
     app.run(ssl_context=('cert.pem', 'key.pem'), host='0.0.0.0', debug=True)
