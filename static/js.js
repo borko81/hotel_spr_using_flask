@@ -10,7 +10,7 @@ for (var i = 0; i < tds.length; i++) {
 document.getElementById('prihodi_po_grupi').innerHTML +=
             '<table class="result"><tr><td>Всичко</td><td></td><td>' + sum2 + '</td></tr></table>'
 
-// Търсачката
+// Търсачакта
 
 function myFunction () {
 
@@ -20,7 +20,7 @@ function myFunction () {
   filter = input.value.toUpperCase()
   table = document.getElementById('prihodi_po_grupi')
   tr = table.getElementsByTagName('tr')
-
+  
   for (i = 1; i < tr.length - 1; i++) {
     tds = tr[i].getElementsByTagName('td')
     var matches = false
@@ -42,7 +42,7 @@ function myFunction () {
   }
 }
 
-// Същата с ново име щото не ми се занимава да махам тотал в отделна функция///
+// Същата с ново име щото не ми се заниамва да махам тотал в отделна функция///
 
 function myFunction2 () {
 
@@ -52,7 +52,7 @@ function myFunction2 () {
   filter = input.value.toUpperCase()
   table = document.getElementById('prihodi_po_grupi2')
   tr = table.getElementsByTagName('tr')
-
+  
   for (i = 1; i < tr.length - 1; i++) {
     tds = tr[i].getElementsByTagName('td')
     var matches = false

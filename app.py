@@ -1,4 +1,3 @@
-# import module's
 from flask import Flask, redirect, url_for, render_template, request, session, flash
 from firebird.connectfdb import con_to_firebird, con_to_firebird2
 
@@ -7,9 +6,10 @@ import json
 import datetime
 import time
 from datetime import timedelta, datetime
+import hashlib
 
 
-# ПОЛЗВА СЕ ЗА ПРОМЯНА НА ДАТА ПО НАШИЯ СТАНДАРТ, МОЖЕ ДА СЕ ДОБАВЯТ И ДРУГИ ФОРМАТИ
+# ПОЛЗВА СЕ ЗА ПРОМЯНА НА ДАТТА ПО НАШИЯ СТАНДАРТ, МОЖЕ ДА СЕ ДОБАВЯТ И ДРУГИ ФОРМАТИ
 context = {"now": int(time.time()), "strftime": time.strftime,
            "strptime": datetime.strptime}
 
@@ -22,7 +22,7 @@ app.config["SECRET_KEY"] = "Bork@"
 
 def generate_dates_range():
     """
-        Generate list with dates for card, use in reservation card template
+        Generate list with dates for card
     """
     today = datetime.now().date()
     dates = []
@@ -43,9 +43,6 @@ def insertdata(name):
 
 @app.route("/", methods=["GET"])
 def index():
-    """
-        check user is authenticated or not, if not return to login form
-    """
     if not session.get("logged_in"):
         return render_template("login.html")
     else:
@@ -54,8 +51,11 @@ def index():
 
 @app.route("/login", methods=["POST"])
 def login():
-    """ Login page """
-    if request.form["password"] == "buratino" and request.form["username"] == "buratino":
+    user_credential = hashlib.sha256()
+    password_credential = hashlib.sha256()
+    user_credential.update(request.form["username"].encode('utf-8'))
+    password_credential.update(request.form["password"].encode('utf-8'))
+    if user_credential.hexdigest() == "694f9239193cd42447a703b48e6759b6c9917587064798bb14ad020a3b3b8539" and password_credential.hexdigest() == "694f9239193cd42447a703b48e6759b6c9917587064798bb14ad020a3b3b8539":
         session.permanent = False
         session["logged_in"] = True
         return redirect(url_for("housekeeping"))
@@ -66,7 +66,6 @@ def login():
 
 @app.route("/logout")
 def logout():
-    """ Logount function """
     session["logged_in"] = False
     return index()
 
@@ -117,7 +116,7 @@ def info():
 def detail_info(guest_id):
     if session.get("logged_in"):
         """
-        ДЕТЕЙЛИТЕ НА СМЕТKАTA, ВИКАТ СЕ В МОДАЛНИЯТ ДИАЛОГ НА GUEST ТЕМПЛЕИТА
+        ДЕТЕЙЛИТЕ НА СМЕТАТА, ВИКАТ СЕ В МОДАЛНИЯТ ДИАЛОГ
         """
         query = """
         select
@@ -144,7 +143,7 @@ def detail_info(guest_id):
 @app.route("/reservations", methods=["GET", "POST"])
 def reservations():
     """
-    СПИСЪК С РЕЗЕРАЦИИ, ТАБЛИЦА
+    СПИСЪК С РЕЗЕРАЦИИ
     """
     if session.get("logged_in"):
         # action = "/reservations"
@@ -179,7 +178,7 @@ def reservations():
             and NOT EXISTS(SELECT active_nast.nast_id from active_nast WHERE active_nast.nast_id = nast.id)
             group by 1,2,3,4,6,7,8,9,10,12
             """
-            # ПЕРСПЕКТИВНА ЗАЕТОСТ, СПРЯМО ЗАДАДЕНИЯ ПЕРИОД НА СПИСЪК РЕЗЕРВАЦИИ, АКО ОПРЕДЕЛЕНА СТАЯ Я НЯМА В ОБЩИЯ ПЛАН НЕ СЕ ЗАРЕЖДА!
+            # Perspectivna zaetost
             q = """
             with table_one as
             (
@@ -207,8 +206,7 @@ def reservations():
 
             """
             result = defaultdict(list)
-            # КРАИ ПЕРСПЕКТИВНА ЗАЕТОСТ
-            # ВЗЕМА ВЪВЕДЕНИТЕ ОТ ПОТРЕБИТЕЛЯ ДАТИ, АКО Е ПРАЗНО ПОЛЕ ВЪВЕЖДА ДНЕШНА ДАТА
+            # End of perp zaetos
             f_data = request.form["fdata"] or str(datetime.today().date())
             l_data = request.form["ldata"] or str(datetime.today().date())
 
@@ -243,7 +241,7 @@ def reservations():
 @app.route("/usls", methods=["GET", "POST"])
 def usls():
     """
-    НАЧИСЛЕНИ И ПЛАТЕНИ УСЛУГИ ЗА ПЕРИОД, ПОЛЗВАТ СЕ 2 КУЕРИТА, ЩОТО МИСЛЯ ДА СЕ ДОБАВЯ ОЩЕ!
+    НАЧИСЛЕНИ И ПЛАТЕНО УСЛУГИ ЗА ПЕРИДО, ПОЛЗВАТ СЕ 2 КУЕРИТЕ, ЩОТО МИСЛЯ ДА СЕ ДОБАВЯ ОЩЕ!
     """
     if session.get("logged_in"):
         # action = "/usls"
@@ -387,7 +385,6 @@ def room_landing():
 
 @app.route("/payment", methods=["POST", "GET"])
 def payment():
-    """ ГОСТА СИ ВЪВЕЖДА СТАЯТА, ПОКАЗВА МУ СЕ ДЪЛЖИМАТА СМЕТКА. ИДЕЯТА Е ДА ЗАМЕСТИ ПРОФОРМА СМЕТКА """
     if session.get("logged_in"):
         if request.method == "POST":
             query = """
@@ -477,7 +474,7 @@ def paymnet_id(room_name, kasa):
 @app.route("/fak", methods=["GET", "POST"])
 def fak():
     """
-    ФАКТУРИ ИЗДАДЕНИ ЗА ПЕРИОДА
+    УСЛУГИ ПРЕЗ ПЕРИОДА
     """
     if session.get("logged_in") is True:
         # action = "/fak"
@@ -503,7 +500,7 @@ def fak():
             end
             from FAK
             inner join OPR on OPR.ID = FAK.OPR_ID
-            inner join FIRMI on FIRMI.ID = FAK.FIRMA_ID
+            left join FIRMI on FIRMI.ID = FAK.FIRMA_ID
             inner join PAY_TIP on PAY_TIP.ID = FAK.V_BROI
             where cast(OPR.DATE_TIME as date) between ? and ?
             """
@@ -526,7 +523,6 @@ def fak():
 
 @app.route("/fak/<string:id>", methods=["GET", "POST"])
 def fak_detail(id):
-    """ ДЕТАИЛИТЕ ПО ФАКТУРИТЕ, СЛЕД КАТО СЕ НАТИСНЕ ВЪРХУ НОМЕРА НА СЪИТВЕТНА ФАКТУРА В ТЕМПЛЕИТА ЗА ФАКТУРИ """
     if session.get("logged_in") is True:
         q = """
         select
@@ -572,7 +568,6 @@ def fak_detail(id):
 
 @app.route("/housekeeping", methods=["GET"])
 def housekeeping():
-    """ ХАУСЕКИПИНГ """
     if session.get("logged_in"):
         # employments = {}
         active_people_and_room = """
@@ -592,6 +587,7 @@ def housekeeping():
         FROM nast
         where NAST.CHECK_IN_DATE = current_date
         and NAST.IS_DELETED = '0'
+        and NAST.last_opr_type <> '101'
         and NAST.DOGOVOR_ID is not null
         and not exists(select active_nast.nast_id from active_nast where nast.id = active_nast.nast_id)
         """
@@ -665,7 +661,6 @@ def housekeeping():
 
 @app.route("/dirty", methods=["GET"])
 def dirty():
-    """ НЕПОЧИСТЕНИ ПОМЕЩЕНИЯ """
     if session.get("logged_in"):
         rooms_status = """
         select
@@ -713,7 +708,6 @@ def dirty():
 
 @app.route('/cart_dirty', methods=['GET'])
 def cart_dirty():
-    """ НЕПОЧИСТЕНИ ПОМЕЩЕНИЯ 2-И ВАРИЯНТ """
     if session.get("logged_in"):
         rooms_status = """
         select
@@ -761,7 +755,6 @@ def cart_dirty():
 
 @app.route('/reservations_card')
 def reservations_card():
-    """ КАРТА РЕЗЕРВАЦИИ """
     if session.get("logged_in") is True:
         query_rooms_names = """select rooms.name, rooms.id from rooms order by 1"""
 
@@ -798,10 +791,8 @@ def reservations_card():
         return render_template('reservations_card.html', rooms=rooms, dates=generate_dates_range(), data=data)
     return index()
 
-
 @app.route('/price_change', methods=["GET", "POST"])
 def price_change():
-    """ ПРОМЯНА НА ЦЕНА ОТ ОПЕРАТОР """
     if session.get("logged_in") is True:
         if request.method == "GET":
             return redirect(url_for("insertdata"))
@@ -823,6 +814,72 @@ def price_change():
         """
         mistake = con_to_firebird(query, (f_data, l_data, ))
         return render_template('price_change.html', mistakes=mistake)
+    return index()
+
+
+@app.route('/depozit', methods=['GET', 'POST'])
+def depozit():
+    query = """
+    select
+    depozit.id,
+    depozit.number,
+    dogovori.name_cyr,
+    depozit.name,
+    payment_el.suma,
+    opr.date_time,
+    case
+    when not exists (select smt_pay_node.payment_el_id from smt_pay_node where smt_pay_node.payment_el_id = payment_el.id)
+    AND NOT EXISTS (SELECT OPR_ANUL.ID FROM OPR_ANUL WHERE OPR_ANUL.AN_OPR_ID = SMETKA.OPR_ID)
+    and not exists (select smetka.opr_id from smetka where opr.opr_tip_id = 33) then 'in'
+
+    when  EXISTS (SELECT OPR_ANUL.ID FROM OPR_ANUL WHERE OPR_ANUL.AN_OPR_ID = SMETKA.OPR_ID)  then 'storno'
+
+    when not exists (select smt_pay_node.payment_el_id from smt_pay_node where smt_pay_node.payment_el_id = payment_el.id)
+    AND NOT EXISTS (SELECT OPR_ANUL.ID FROM OPR_ANUL WHERE OPR_ANUL.AN_OPR_ID = SMETKA.OPR_ID)
+    and exists (select opr.opr_tip_id from opr where opr.opr_tip_id = 33) then 'reduce'
+
+    else 'out'
+    end,
+    cast(dds_stavka.dds as int)
+    from payment_el
+    inner join depozit on depozit.id = payment_el.deposit_id
+    inner join smetka on smetka.id =  payment_el.smetka_id
+    inner join opr on opr.id = smetka.opr_id
+    inner join dogovori on dogovori.id = depozit.dogovor_id
+    inner join dds_stavka on dds_stavka.id = smetka.dds_id
+    where not exists (select old_smt_pay_node.payment_el_id from old_smt_pay_node where old_smt_pay_node.payment_el_id = payment_el.id)
+    order by 1, 6
+    """
+    if session.get('logged_in') is True:
+        deposits = {}
+
+        result = con_to_firebird(query=query)
+        for line in result:
+            if line[6].strip() == 'storno':
+                continue
+            print(line)
+            if line[0] not in deposits:
+                deposits[line[0]] = {'name': line[1], 'contract': line[2],
+                                    'from_who': line[3], 'sum': [line[4]], 'time': [line[5]], 'total': line[4], 'dds': line[7]}
+            else:
+                if line[6].strip() == 'in':
+                    deposits[line[0]]['sum'][0] += line[4]
+                    deposits[line[0]]['time'].append(line[5])
+
+                elif line[6].strip() == 'out':
+                    deposits[line[0]]['sum'].append(line[4])
+                    deposits[line[0]]['time'].append(line[5])
+                    deposits[line[0]]['total'] -= line[4]
+
+                elif line[6].strip() == 'reduce':
+                    deposits[line[0]]['sum'].append(-line[4])
+                    deposits[line[0]]['time'].append(line[5])
+                    deposits[line[0]]['total'] -= line[4]
+
+                elif line[6].strip() == 'storno':
+                    pass
+
+        return render_template('depozit.html', deposits=deposits)
     return index()
 
 

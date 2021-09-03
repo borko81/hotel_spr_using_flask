@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+
+{% block body %}
+<script>
+    document.getElementById("generalform").style.display="none";
+</script>
+<h2>Депозити</h2>
+
+<table class="activenast">
+    <thead>
+        <tr class="tableinfo">
+            <th>Депозит Номер</th>
+            <th>Контракт</th>
+            <th>Титуляр</th>
+            <th>Вход</th>
+            <th>Изход</th>
+            <th>Салдо</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for key, d in deposits.items() %}
+            <tr>
+                <td>{{ d['name'] }} / {{ d['dds'] }}%</td>
+                <td>{{ d['contract'] }}</td>
+                <td>{{ d['from_who'] }}</td>   
+                <td>{{ "%.2f"|format(d['sum'][0]|float) }}</td>
+                <td>{{ "%.2f"|format(d['sum'][1:]|sum|float) }}</td>
+                <td>{{ "%.2f"|format(d['total']) }}</td>
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+{% endblock body %}
