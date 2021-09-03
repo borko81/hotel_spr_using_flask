@@ -1,14 +1,9 @@
-# Import modules
 import fdb
 
-# database path
-database = {"host": "127.0.0.1", "database": "flask", "user": "SYSDBA", "password": "masterkey"}
+database = {"host": "127.0.0.1", "database": "hhh", "user": "SYSDBA", "password": "masterkey"}
 
 
 def con_to_firebird(query, *args):
-    """
-        return result with generator
-    """
     con = fdb.connect(**database)
     cur = con.cursor()
     try:
@@ -23,9 +18,6 @@ def con_to_firebird(query, *args):
 
 
 def con_to_firebird2(query, *args):
-    """
-        return result in one file
-    """
     con = fdb.connect(**database)
     cur = con.cursor()
     try:
@@ -39,9 +31,6 @@ def con_to_firebird2(query, *args):
 
 
 if __name__ == "__main__":
-    """
-        test code, check connection is ok or not
-    """
     for line in con_to_firebird(
         """select
     sum((smetki_el.kol * smetki_el.suma)),
