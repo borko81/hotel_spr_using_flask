@@ -1,4 +1,11 @@
 {% extends 'base.html' %}
+{% block css %}
+<style>
+    .dataTables_filter {
+        float: left !important;
+    }
+</style>
+{% endblock css %}
 
 {% block body %}
 <script>
@@ -6,7 +13,7 @@
 </script>
 <h2>Депозити</h2>
 
-<table class="activenast">
+<table class="activenast" id="example">
     <thead>
         <tr class="tableinfo">
             <th>Депозит Номер</th>
@@ -41,6 +48,9 @@
 
 <script>
     $(function () {
+        $("#example").dataTable({
+            "paging": false,
+        });
         $('.info').on('click', function () {
             const id = $(this).data('id')
             const url = '/depozit_detail/' + id

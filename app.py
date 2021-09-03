@@ -857,7 +857,6 @@ def depozit():
         for line in result:
             if line[6].strip() == 'storno':
                 continue
-            print(line)
             if line[0] not in deposits:
                 deposits[line[0]] = {'name': line[1], 'contract': line[2],
                                     'from_who': line[3], 'sum': [line[4]], 'time': [line[5]], 'total': line[4], 'dds': line[7]}
