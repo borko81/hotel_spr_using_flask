@@ -1,5 +1,5 @@
 from flask import Flask, redirect, url_for, render_template, request, session, flash
-from firebird.connectfdb import con_to_firebird, con_to_firebird2, con_to_firebird3 
+from firebird.connectfdb import con_to_firebird, con_to_firebird2 
 
 from collections import defaultdict
 import json
@@ -7,6 +7,11 @@ import datetime
 import time
 from datetime import timedelta, datetime
 import hashlib
+import logging
+
+
+# Log configuration
+logging.basicConfig(filename="logfilename.log", level=logging.INFO)
 
 
 # ПОЛЗВА СЕ ЗА ПРОМЯНА НА ДАТТА ПО НАШИЯ СТАНДАРТ, МОЖЕ ДА СЕ ДОБАВЯТ И ДРУГИ ФОРМАТИ
@@ -46,6 +51,7 @@ def index():
     if not session.get("logged_in"):
         return render_template("login.html")
     else:
+        logging.info(f"[-] IP {request.remote_addr} try connect unSuccsessfully at {datetime.now()}")
         return redirect(url_for("info"))
 
 
@@ -58,8 +64,10 @@ def login():
     if user_credential.hexdigest() == "694f9239193cd42447a703b48e6759b6c9917587064798bb14ad020a3b3b8539" and password_credential.hexdigest() == "694f9239193cd42447a703b48e6759b6c9917587064798bb14ad020a3b3b8539":
         session.permanent = False
         session["logged_in"] = True
+        logging.info(f"[+] IP {request.remote_addr} connect Succsessfully at {datetime.now()}")
         return redirect(url_for("housekeeping"))
     else:
+        logging.info(f"IP {request.remote_addr} try connect unSuccsessfully at {datetime.now()}")
         flash("wrong autentication")
         return index()
 
@@ -108,6 +116,7 @@ def info():
         fdb_data = con_to_firebird(query)
         return render_template("index.html", action=action, fdb_data=fdb_data, title="гости", **context)
     else:
+        logging.info(f"[-] IP {request.remote_addr} try connect unSuccsessfully at {datetime.now()}")
         flash("wrong autentication")
         return index()
 
@@ -136,6 +145,7 @@ def detail_info(guest_id):
             detail_data[line[0]] = line[1]
         return detail_data
     else:
+        logging.info(f"[-] IP {request.remote_addr} try connect unSuccsessfully at {datetime.now()}")
         flash("wrong autentication")
         return index()
 
@@ -235,6 +245,7 @@ def reservations():
                 **context
             )
     else:
+        logging.info(f"[-] IP {request.remote_addr} try connect unSuccsessfully at {datetime.now()}")
         return index()
 
 
@@ -329,6 +340,7 @@ def usls():
                 **context
             )
     else:
+        logging.info(f"[-] IP {request.remote_addr} try connect unSuccsessfully at {datetime.now()}")
         return index()
 
 
@@ -380,6 +392,7 @@ def room_landing():
                 **context
             )
     else:
+        logging.info(f"[-] IP {request.remote_addr} try connect unSuccsessfully at {datetime.now()}")
         return index()
 
 
@@ -428,6 +441,7 @@ def payment():
             return render_template("payment.html")
 
     else:
+        logging.info(f"[-] IP {request.remote_addr} try connect unSuccsessfully at {datetime.now()}")
         return index()
 
 
@@ -468,6 +482,7 @@ def paymnet_id(room_name, kasa):
         return json.dumps(data)
 
     else:
+        logging.info(f"[-] IP {request.remote_addr} try connect unSuccsessfully at {datetime.now()}")
         return index()
 
 
@@ -518,6 +533,7 @@ def fak():
             )
 
     else:
+        logging.info(f"[-] IP {request.remote_addr} try connect unSuccsessfully at {datetime.now()}")
         return index()
 
 
@@ -656,6 +672,7 @@ def housekeeping():
             # rooms_emps_status=employments
         )
     else:
+        logging.info(f"[-] IP {request.remote_addr} try connect unSuccsessfully at {datetime.now()}")
         return index()
 
 
@@ -703,6 +720,7 @@ def dirty():
         status = con_to_firebird(rooms_status)
         return render_template("dirty_rooms.html", status=status)
     else:
+        logging.info(f"[-] IP {request.remote_addr} try connect unSuccsessfully at {datetime.now()}")
         return index()
 
 
@@ -750,6 +768,7 @@ def cart_dirty():
         context = con_to_firebird(rooms_status)
         return render_template('room_cleanup.html', context=context)
     else:
+        logging.info(f"[-] IP {request.remote_addr} try connect unSuccsessfully at {datetime.now()}")
         return index()
 
 
@@ -789,6 +808,7 @@ def reservations_card():
 
         # return jsonify(data)
         return render_template('reservations_card.html', rooms=rooms, dates=generate_dates_range(), data=data)
+    logging.info(f"[-] IP {request.remote_addr} try connect unSuccsessfully at {datetime.now()}")
     return index()
 
 
@@ -815,6 +835,8 @@ def price_change():
         """
         mistake = con_to_firebird(query, (f_data, l_data, ))
         return render_template('price_change.html', mistakes=mistake)
+
+    logging.info(f"[-] IP {request.remote_addr} try connect unSuccsessfully at {datetime.now()}")
     return index()
 
 
@@ -882,7 +904,11 @@ def depozit():
 
 
             return render_template('depozit.html', deposits=deposits)
+
+        logging.info(f"[-] IP {request.remote_addr} try connect unSuccsessfully at {datetime.now()}")
         return index()
+    
+    logging.info(f"[-] IP {request.remote_addr} try connect unSuccsessfully at {datetime.now()}")
     return index()
 
 
@@ -935,11 +961,14 @@ def depozit_detail(dep_id):
             dep_detail[dep_id]['suma'].append(line[2])
             dep_detail[dep_id]['fak'].append(line[4])
         return dep_detail
+
+    logging.info(f"[-] IP {request.remote_addr} try connect unSuccsessfully at {datetime.now()}")
     return index()
 
 
 @app.route('/otc', methods=["GET", "POST"])
 def otc():
+    logging.info(f"New income connection from {request.remote_addr} at {datetime.now()}")
     if session.get("logged_in") is True:
         if request.method == "GET":
             return redirect(url_for("insertdata", name='otc'))
@@ -1006,8 +1035,10 @@ def otc():
                 otc[target]['IncomeD'] += line[5]
 
         return render_template('otc.html', otc=otc, title=title, **context)
+
+    logging.info(f"[-] IP {request.remote_addr} try connect unSuccsessfully at {datetime.now()}")
     return index()
 
 
 if __name__ == "__main__":
-    app.run(ssl_context=('cert.pem', 'key.pem'), host='0.0.0.0', debug=True)
+    app.run(ssl_context=('cert.pem', 'key.pem'), host='0.0.0.0', debug=False)
