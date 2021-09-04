@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+{% block css %}
+<style>
+    .dataTables_filter {
+        float: left !important;
+    }
+</style>
+{% endblock css %}
+
+{% block body %}
+<script>
+    document.getElementById("generalform").style.display="none";
+</script>
+<h2>Отчети</h2>
+
+<table class="activenast" id="example">
+    <thead>
+        <tr class="tableinfo">
+            <th>N:</th>
+            <th>Дата</th>
+            <th>Оператор</th>
+            <th>Приключен</th>
+            <th>Брой</th>
+            <th>Карта</th>
+            <th>Банка</th>
+            <th>Аванс</th>
+            <th>Total</th>
+            <th>Нощувки</th>
+            <th>Спа</th>
+            <th>Пансиони</th>
+            <th>Услуги</th>
+            <th>Обекти</th>
+            <th>- Аванс</th>
+            <th>+ Аванс</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for key, value in otc.items() %}
+            <tr>
+                <td>{{ key.split('_')[0] }}</td>
+                <td>{{ strptime(key.split('_')[1], "%Y-%m-%d").strftime("%d.%m.%Y") }}</td>
+                <td>{{ key.split('_')[2].split()[-1] }}</td>
+                <td>{{ strptime(key.split('_')[3], "%Y-%m-%d %H:%M:%S.%f").strftime("%d.%m %H:%M") }}</td>
+                <td>{{ "%.2f"|format(value['cash']) }}</td>
+                <td>{{ "%.2f"|format(value['Card']) }}</td>
+                <td>{{ "%.2f"|format(value['Bank']) }}</td>
+                <td>{{ "%.2f"|format(value['Avans']) }}</td>
+                <td>{{ "%.2f"|format( value['Total']) }}</td>
+                <td>{{ "%.2f"|format(value['Nights']) }}</td>
+                <td>{{ "%.2f"|format(value['Spa']) }}</td>
+                <td>{{ "%.2f"|format(value['Pansion']) }}</td>
+                <td>{{ "%.2f"|format(value['Usl']) }}</td>
+                <td>{{ "%.2f"|format(value['TTT']) }}</td>
+                <td>{{ "%.2f"|format(value['UsD']) }}</td>
+                <td>{{"%.2f"|format( value['IncomeD']) }}</td>
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<script>
+    $(function () {
+        $("#example").dataTable({
+            "paging": false,
+        })
+    });
+</script>
+{% endblock body %}
