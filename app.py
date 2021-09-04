@@ -791,6 +791,7 @@ def reservations_card():
         return render_template('reservations_card.html', rooms=rooms, dates=generate_dates_range(), data=data)
     return index()
 
+
 @app.route('/price_change', methods=["GET", "POST"])
 def price_change():
     if session.get("logged_in") is True:
@@ -819,67 +820,191 @@ def price_change():
 
 @app.route('/depozit', methods=['GET', 'POST'])
 def depozit():
-    query = """
-    select
-    depozit.id,
-    depozit.number,
-    dogovori.name_cyr,
-    depozit.name,
-    payment_el.suma,
-    opr.date_time,
-    case
-    when not exists (select smt_pay_node.payment_el_id from smt_pay_node where smt_pay_node.payment_el_id = payment_el.id)
-    AND NOT EXISTS (SELECT OPR_ANUL.ID FROM OPR_ANUL WHERE OPR_ANUL.AN_OPR_ID = SMETKA.OPR_ID)
-    and not exists (select smetka.opr_id from smetka where opr.opr_tip_id = 33) then 'in'
+    if session.get("logged_in") is True:
+        query = """
+        select
+        depozit.id,
+        depozit.number,
+        dogovori.name_cyr,
+        depozit.name,
+        payment_el.suma,
+        opr.date_time,
+        case
+        when not exists (select smt_pay_node.payment_el_id from smt_pay_node where smt_pay_node.payment_el_id = payment_el.id)
+        AND NOT EXISTS (SELECT OPR_ANUL.ID FROM OPR_ANUL WHERE OPR_ANUL.AN_OPR_ID = SMETKA.OPR_ID)
+        and not exists (select smetka.opr_id from smetka where opr.opr_tip_id = 33) then 'in'
 
-    when  EXISTS (SELECT OPR_ANUL.ID FROM OPR_ANUL WHERE OPR_ANUL.AN_OPR_ID = SMETKA.OPR_ID)  then 'storno'
+        when  EXISTS (SELECT OPR_ANUL.ID FROM OPR_ANUL WHERE OPR_ANUL.AN_OPR_ID = SMETKA.OPR_ID)  then 'storno'
 
-    when not exists (select smt_pay_node.payment_el_id from smt_pay_node where smt_pay_node.payment_el_id = payment_el.id)
-    AND NOT EXISTS (SELECT OPR_ANUL.ID FROM OPR_ANUL WHERE OPR_ANUL.AN_OPR_ID = SMETKA.OPR_ID)
-    and exists (select opr.opr_tip_id from opr where opr.opr_tip_id = 33) then 'reduce'
+        when not exists (select smt_pay_node.payment_el_id from smt_pay_node where smt_pay_node.payment_el_id = payment_el.id)
+        AND NOT EXISTS (SELECT OPR_ANUL.ID FROM OPR_ANUL WHERE OPR_ANUL.AN_OPR_ID = SMETKA.OPR_ID)
+        and exists (select opr.opr_tip_id from opr where opr.opr_tip_id = 33) then 'reduce'
 
-    else 'out'
-    end,
-    cast(dds_stavka.dds as int)
-    from payment_el
-    inner join depozit on depozit.id = payment_el.deposit_id
-    inner join smetka on smetka.id =  payment_el.smetka_id
-    inner join opr on opr.id = smetka.opr_id
-    inner join dogovori on dogovori.id = depozit.dogovor_id
-    inner join dds_stavka on dds_stavka.id = smetka.dds_id
-    where not exists (select old_smt_pay_node.payment_el_id from old_smt_pay_node where old_smt_pay_node.payment_el_id = payment_el.id)
-    order by 1, 6
-    """
-    if session.get('logged_in') is True:
-        deposits = {}
+        else 'out'
+        end,
+        cast(dds_stavka.dds as int)
+        from payment_el
+        inner join depozit on depozit.id = payment_el.deposit_id
+        inner join smetka on smetka.id =  payment_el.smetka_id
+        inner join opr on opr.id = smetka.opr_id
+        inner join dogovori on dogovori.id = depozit.dogovor_id
+        inner join dds_stavka on dds_stavka.id = smetka.dds_id
+        where not exists (select old_smt_pay_node.payment_el_id from old_smt_pay_node where old_smt_pay_node.payment_el_id = payment_el.id)
+        order by 1, 6
+        """
+        if session.get('logged_in') is True:
+            deposits = {}
 
-        result = con_to_firebird(query=query)
-        for line in result:
-            if line[6].strip() == 'storno':
-                continue
-            print(line)
-            if line[0] not in deposits:
-                deposits[line[0]] = {'name': line[1], 'contract': line[2],
-                                    'from_who': line[3], 'sum': [line[4]], 'time': [line[5]], 'total': line[4], 'dds': line[7]}
-            else:
-                if line[6].strip() == 'in':
-                    deposits[line[0]]['sum'][0] += line[4]
-                    deposits[line[0]]['time'].append(line[5])
+            result = con_to_firebird(query=query)
+            for line in result:
+                if line[6].strip() == 'storno':
+                    continue
+                if line[0] not in deposits:
+                    deposits[line[0]] = {'name': line[1], 'contract': line[2],
+                                        'from_who': line[3], 'sum': [line[4]], 'time': [line[5]], 'total': line[4], 'dds': line[7]}
+                else:
+                    if line[6].strip() == 'in':
+                        deposits[line[0]]['sum'][0] += line[4]
+                        deposits[line[0]]['time'].append(line[5])
 
-                elif line[6].strip() == 'out':
-                    deposits[line[0]]['sum'].append(line[4])
-                    deposits[line[0]]['time'].append(line[5])
-                    deposits[line[0]]['total'] -= line[4]
+                    elif line[6].strip() == 'out':
+                        deposits[line[0]]['sum'].append(line[4])
+                        deposits[line[0]]['time'].append(line[5])
+                        deposits[line[0]]['total'] -= line[4]
 
-                elif line[6].strip() == 'reduce':
-                    deposits[line[0]]['sum'].append(-line[4])
-                    deposits[line[0]]['time'].append(line[5])
-                    deposits[line[0]]['total'] -= line[4]
+                    elif line[6].strip() == 'reduce':
+                        deposits[line[0]]['sum'].append(-line[4])
+                        deposits[line[0]]['time'].append(line[5])
+                        deposits[line[0]]['total'] -= line[4]
 
-                elif line[6].strip() == 'storno':
-                    pass
+                    elif line[6].strip() == 'storno':
+                        pass
 
-        return render_template('depozit.html', deposits=deposits)
+            return render_template('depozit.html', deposits=deposits)
+        return index()
+    return index()
+
+
+@app.route('/depozit_detail/<int:dep_id>')
+def depozit_detail(dep_id):
+    if session.get("logged_in") is True:
+        query = """
+            select
+            depozit.id,
+            opr.date_time,
+            payment_el.suma,
+            case
+            when not exists (select smt_pay_node.payment_el_id from smt_pay_node where smt_pay_node.payment_el_id = payment_el.id)
+            AND NOT EXISTS (SELECT OPR_ANUL.ID FROM OPR_ANUL WHERE OPR_ANUL.AN_OPR_ID = SMETKA.OPR_ID)
+            and not exists (select smetka.opr_id from smetka where opr.opr_tip_id = 33) then 'Зареждане'
+
+            when  EXISTS (SELECT OPR_ANUL.ID FROM OPR_ANUL WHERE OPR_ANUL.AN_OPR_ID = SMETKA.OPR_ID)  then 'storno'
+
+            when not exists (select smt_pay_node.payment_el_id from smt_pay_node where smt_pay_node.payment_el_id = payment_el.id)
+            AND NOT EXISTS (SELECT OPR_ANUL.ID FROM OPR_ANUL WHERE OPR_ANUL.AN_OPR_ID = SMETKA.OPR_ID)
+            and exists (select opr.opr_tip_id from opr where opr.opr_tip_id = 33) then 'reduce'
+
+            else 'Усвояване'
+            end,
+            case
+            when fak.number is not null then fak.number
+            else (
+                    select distinct fak.number
+                    from smt_pay_node
+                    inner join fak on fak.id = smt_pay_node.fak_id
+                    where smt_pay_node.payment_el_id = payment_el.id
+                )
+            end
+
+            from payment_el
+            inner join depozit on depozit.id = payment_el.deposit_id
+            inner join smetka on smetka.id =  payment_el.smetka_id
+            inner join opr on opr.id = smetka.opr_id
+            inner join dogovori on dogovori.id = depozit.dogovor_id
+            left join fak_deposite_node on fak_deposite_node.smetka_id = smetka.id
+            left join fak on fak.id = fak_deposite_node.fak_id
+            where not exists (select old_smt_pay_node.payment_el_id from old_smt_pay_node where old_smt_pay_node.payment_el_id = payment_el.id)
+            and depozit.id = ?
+        """
+        fdb_data_smetka_el = con_to_firebird(query, (dep_id,))
+        dep_detail = {dep_id: {'time': [], 'opr': [], 'suma': [], 'fak': []}}
+        for line in fdb_data_smetka_el:
+            dep_detail[dep_id]['time'].append(line[1])
+            dep_detail[dep_id]['opr'].append(line[3])
+            dep_detail[dep_id]['suma'].append(line[2])
+            dep_detail[dep_id]['fak'].append(line[4])
+        return dep_detail
+    return index()
+
+
+@app.route('/otc', methods=["GET", "POST"])
+def otc():
+    if session.get("logged_in") is True:
+        if request.method == "GET":
+            return redirect(url_for("insertdata", name='otc'))
+        f_data = request.form["fdata"] or str(datetime.today().date())
+        l_data = request.form["ldata"] or str(datetime.today().date())
+        title = 'otc'
+        query = """
+        select
+        otc_sumi.otc_id,
+        otc.otc_date,
+        users.name_cyr,
+        opr.date_time,
+        case
+        when otc_sumi.suma_tip = 0 and otc_sumi.suma_sub_tip = 0 then 'В брой'
+        when otc_sumi.suma_tip = 0 and otc_sumi.suma_sub_tip = 1 then 'По банка'
+        when otc_sumi.suma_tip = 0 and otc_sumi.suma_sub_tip = 2 then 'От Аванс'
+        when otc_sumi.suma_tip = 0 and otc_sumi.suma_sub_tip = 4 then 'Карта'
+        when otc_sumi.suma_tip = 3 and otc_sumi.suma_sub_tip = 4 then 'Тотал'
+        when otc_sumi.suma_tip = 1 and otc_sumi.suma_sub_tip = 1 then 'Нощувки'
+        when otc_sumi.suma_tip = 1 and otc_sumi.suma_sub_tip = 2 then 'Спа'
+        when otc_sumi.suma_tip = 1 and otc_sumi.suma_sub_tip = 3 then 'Пансиони'
+        when otc_sumi.suma_tip = 1 and otc_sumi.suma_sub_tip = 6 then 'Услуги'
+        when otc_sumi.suma_tip = 1 and otc_sumi.suma_sub_tip = 5 then 'Т. обекти'
+        when otc_sumi.suma_tip = 1 and otc_sumi.suma_sub_tip = 9 then 'Усвоен депозит'
+        when otc_sumi.suma_tip = 1 and otc_sumi.suma_sub_tip = 7 then 'Зареждане на аванс'
+        end,
+        otc_sumi.suma
+        from otc
+        inner join otc_sumi on otc_sumi.otc_id = otc.id
+        inner join opr on opr.id = otc.opr_id
+        inner join users on users.id = opr.user_id
+        where otc.otc_date between ? and ?
+        and otc_sumi.arc = 1
+        """
+        query_result = con_to_firebird(query, (f_data, l_data, ))
+        otc = {}
+        for line in query_result:
+            target = "_".join([str(line[0]), str(line[1]), str(line[2]), str(line[3])])
+            if target not in otc:
+                otc[target] = {'cash': 0, 'Bank': 0, 'Avans': 0, 'Card': 0, 'Total': 0, 'Nights': 0, 'Spa': 0, 'Pansion': 0, 'Usl': 0, 'TTT': 0, 'UsD': 0, 'IncomeD': 0}
+            if line[4].strip() == 'В брой':
+                otc[target]['cash'] = line[5]
+            elif line[4].strip() == 'Карта':
+                otc[target]['Card'] = line[5]
+            elif line[4].strip() == 'По банка':
+                otc[target]['Bank'] = line[5]
+            elif line[4].strip() == 'По От Аванс':
+                otc[target]['Avans'] = line[5]
+            elif line[4].strip() == 'Тотал':
+                otc[target]['Total'] = line[5]
+            elif line[4].strip() == 'Нощувки':
+                otc[target]['Nights'] = line[5]
+            elif line[4].strip() == 'Спа':
+                otc[target]['Spa'] = line[5]
+            elif line[4].strip() == 'Пансиони':
+                otc[target]['Pansion'] = line[5]
+            elif line[4].strip() == 'Услуги':
+                otc[target]['Usl'] = line[5]
+            elif line[4].strip() == 'Т. обекти':
+                otc[target]['TTT'] = line[5]
+            elif line[4].strip() == 'Усвоен депозит':
+                otc[target]['UsD'] = line[5]
+            elif line[4].strip() == 'Зареждане на аванс':
+                otc[target]['IncomeD'] = line[5]
+
+        return render_template('otc.html', otc=otc, title=title, **context)
     return index()
 
 
