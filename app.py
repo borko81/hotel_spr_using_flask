@@ -1,5 +1,5 @@
 from flask import Flask, redirect, url_for, render_template, request, session, flash
-from firebird.connectfdb import con_to_firebird, con_to_firebird2
+from firebird.connectfdb import con_to_firebird, con_to_firebird2, con_to_firebird3 
 
 from collections import defaultdict
 import json
@@ -875,10 +875,9 @@ def depozit():
         if session.get('logged_in') is True:
             deposits = {}
 
-            result = con_to_firebird(query=query)
+            result = con_to_firebird3(query=query)
             for line in result:
-                if line[0] not in deposits:
-                    deposits[line[0]] = {'number': line[1], 'contract': line[2], 'from_who': line[3], 'dds': line[4], 'income': line[5], 'outcome': line[6], 'total': line[5] - line[6]}
+
 
             return render_template('depozit.html', deposits=deposits)
         return index()
