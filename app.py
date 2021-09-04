@@ -875,8 +875,10 @@ def depozit():
         if session.get('logged_in') is True:
             deposits = {}
 
-            result = con_to_firebird3(query=query)
+            result = con_to_firebird(query=query)
             for line in result:
+                if line[0] not in deposits:
+                    deposits[line[0]] = {'number': line[1], 'contract': line[2], 'from_who': line[3], 'dds': line[4], 'income': line[5], 'outcome': line[6], 'total': line[5] - line[6]}
 
 
             return render_template('depozit.html', deposits=deposits)
