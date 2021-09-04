@@ -952,18 +952,19 @@ def otc():
         users.name_cyr,
         opr.date_time,
         case
-        when otc_sumi.suma_tip = 0 and otc_sumi.suma_sub_tip = 0 then 'В брой'
-        when otc_sumi.suma_tip = 0 and otc_sumi.suma_sub_tip = 1 then 'По банка'
-        when otc_sumi.suma_tip = 0 and otc_sumi.suma_sub_tip = 2 then 'От Аванс'
-        when otc_sumi.suma_tip = 0 and otc_sumi.suma_sub_tip = 4 then 'Карта'
-        when otc_sumi.suma_tip = 3 and otc_sumi.suma_sub_tip = 4 then 'Тотал'
-        when otc_sumi.suma_tip = 1 and otc_sumi.suma_sub_tip = 1 then 'Нощувки'
-        when otc_sumi.suma_tip = 1 and otc_sumi.suma_sub_tip = 2 then 'Спа'
-        when otc_sumi.suma_tip = 1 and otc_sumi.suma_sub_tip = 3 then 'Пансиони'
-        when otc_sumi.suma_tip = 1 and otc_sumi.suma_sub_tip = 6 then 'Услуги'
-        when otc_sumi.suma_tip = 1 and otc_sumi.suma_sub_tip = 5 then 'Т. обекти'
-        when otc_sumi.suma_tip = 1 and otc_sumi.suma_sub_tip = 9 then 'Усвоен депозит'
-        when otc_sumi.suma_tip = 1 and otc_sumi.suma_sub_tip = 7 then 'Зареждане на аванс'
+        when otc_sumi.arc=0 and otc_sumi.suma_tip = 0 and otc_sumi.suma_sub_tip = 0 then 'В брой'
+        when otc_sumi.arc=0 and otc_sumi.suma_tip = 0 and otc_sumi.suma_sub_tip = 1 then 'По банка'
+        when otc_sumi.arc=0 and otc_sumi.suma_tip = 0 and otc_sumi.suma_sub_tip = 2 then 'От Аванс'
+        when otc_sumi.arc=0 and otc_sumi.suma_tip = 0 and otc_sumi.suma_sub_tip = 4 then 'Карта'
+        when otc_sumi.arc=0 and otc_sumi.suma_tip = 3 and otc_sumi.suma_sub_tip = 4 then 'Тотал'
+        when otc_sumi.arc=1 and otc_sumi.suma_tip = 1 and otc_sumi.suma_sub_tip = 1 then 'Нощувки'
+        when otc_sumi.arc=1 and otc_sumi.suma_tip = 1 and otc_sumi.suma_sub_tip = 2 then 'Спа'
+        when otc_sumi.arc=1 and otc_sumi.suma_tip = 1 and otc_sumi.suma_sub_tip = 3 then 'Пансиони'
+        when otc_sumi.arc=1 and otc_sumi.suma_tip = 1 and otc_sumi.suma_sub_tip = 6 then 'Услуги'
+        when otc_sumi.arc=1 and otc_sumi.suma_tip = 1 and otc_sumi.suma_sub_tip = 5 then 'Т. обекти'
+        when otc_sumi.arc=1 and otc_sumi.suma_tip = 1 and otc_sumi.suma_sub_tip = 9 then 'Усвоен депозит'
+        when otc_sumi.arc=1 and otc_sumi.suma_tip = 1 and otc_sumi.suma_sub_tip = 7 then 'Зареждане на аванс'
+        else ''
         end,
         otc_sumi.suma
         from otc
@@ -971,7 +972,6 @@ def otc():
         inner join opr on opr.id = otc.opr_id
         inner join users on users.id = opr.user_id
         where otc.otc_date between ? and ?
-        and otc_sumi.arc = 1
         """
         query_result = con_to_firebird(query, (f_data, l_data, ))
         otc = {}
@@ -979,30 +979,30 @@ def otc():
             target = "_".join([str(line[0]), str(line[1]), str(line[2]), str(line[3])])
             if target not in otc:
                 otc[target] = {'cash': 0, 'Bank': 0, 'Avans': 0, 'Card': 0, 'Total': 0, 'Nights': 0, 'Spa': 0, 'Pansion': 0, 'Usl': 0, 'TTT': 0, 'UsD': 0, 'IncomeD': 0}
-            if line[4].strip() == 'В брой':
-                otc[target]['cash'] = line[5]
-            elif line[4].strip() == 'Карта':
-                otc[target]['Card'] = line[5]
-            elif line[4].strip() == 'По банка':
-                otc[target]['Bank'] = line[5]
-            elif line[4].strip() == 'По От Аванс':
-                otc[target]['Avans'] = line[5]
-            elif line[4].strip() == 'Тотал':
-                otc[target]['Total'] = line[5]
-            elif line[4].strip() == 'Нощувки':
-                otc[target]['Nights'] = line[5]
-            elif line[4].strip() == 'Спа':
-                otc[target]['Spa'] = line[5]
-            elif line[4].strip() == 'Пансиони':
-                otc[target]['Pansion'] = line[5]
-            elif line[4].strip() == 'Услуги':
-                otc[target]['Usl'] = line[5]
-            elif line[4].strip() == 'Т. обекти':
-                otc[target]['TTT'] = line[5]
-            elif line[4].strip() == 'Усвоен депозит':
-                otc[target]['UsD'] = line[5]
-            elif line[4].strip() == 'Зареждане на аванс':
-                otc[target]['IncomeD'] = line[5]
+            if line[4].strip() == 'В брой' and otc[target]['cash'] != line[5]:
+                otc[target]['cash'] += line[5]
+            elif line[4].strip() == 'Карта' and otc[target]['Card'] != line[5]:
+                otc[target]['Card'] += line[5]
+            elif line[4].strip() == 'По банка' and otc[target]['Bank'] != line[5]:
+                otc[target]['Bank'] += line[5]
+            elif line[4].strip() == 'От Аванс' and otc[target]['Avans'] != line[5]:
+                otc[target]['Avans'] += line[5]
+            elif line[4].strip() == 'Тотал' and otc[target]['Total'] != line[5]:
+                otc[target]['Total'] += line[5]
+            elif line[4].strip() == 'Нощувки' and otc[target]['Nights'] != line[5]:
+                otc[target]['Nights'] += line[5]
+            elif line[4].strip() == 'Спа' and otc[target]['Spa'] != line[5]:
+                otc[target]['Spa'] += line[5]
+            elif line[4].strip() == 'Пансиони' and otc[target]['Pansion'] != line[5]:
+                otc[target]['Pansion'] += line[5]
+            elif line[4].strip() == 'Услуги' and otc[target]['Usl'] != line[5]:
+                otc[target]['Usl'] += line[5]
+            elif line[4].strip() == 'Т. обекти' and otc[target]['TTT'] != line[5]:
+                otc[target]['TTT'] += line[5]
+            elif line[4].strip() == 'Усвоен депозит' and otc[target]['UsD'] != line[5]:
+                otc[target]['UsD'] += line[5]
+            elif line[4].strip() == 'Зареждане на аванс' and otc[target]['IncomeD'] != line[5]:
+                otc[target]['IncomeD'] += line[5]
 
         return render_template('otc.html', otc=otc, title=title, **context)
     return index()
