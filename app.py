@@ -857,7 +857,6 @@ def depozit():
         for line in result:
             if line[6].strip() == 'storno':
                 continue
-            print(line)
             if line[0] not in deposits:
                 deposits[line[0]] = {'name': line[1], 'contract': line[2],
                                     'from_who': line[3], 'sum': [line[4]], 'time': [line[5]], 'total': line[4], 'dds': line[7]}
@@ -881,6 +880,56 @@ def depozit():
 
         return render_template('depozit.html', deposits=deposits)
     return index()
+
+
+@app.route('/depozit_detail/<int:dep_id>')
+def depozit_detail(dep_id):
+    query = """
+        select
+        depozit.id,
+        opr.date_time,
+        payment_el.suma,
+        case
+        when not exists (select smt_pay_node.payment_el_id from smt_pay_node where smt_pay_node.payment_el_id = payment_el.id)
+        AND NOT EXISTS (SELECT OPR_ANUL.ID FROM OPR_ANUL WHERE OPR_ANUL.AN_OPR_ID = SMETKA.OPR_ID)
+        and not exists (select smetka.opr_id from smetka where opr.opr_tip_id = 33) then 'Зареждане'
+
+        when  EXISTS (SELECT OPR_ANUL.ID FROM OPR_ANUL WHERE OPR_ANUL.AN_OPR_ID = SMETKA.OPR_ID)  then 'storno'
+
+        when not exists (select smt_pay_node.payment_el_id from smt_pay_node where smt_pay_node.payment_el_id = payment_el.id)
+        AND NOT EXISTS (SELECT OPR_ANUL.ID FROM OPR_ANUL WHERE OPR_ANUL.AN_OPR_ID = SMETKA.OPR_ID)
+        and exists (select opr.opr_tip_id from opr where opr.opr_tip_id = 33) then 'reduce'
+
+        else 'Усвояване'
+        end,
+        case
+        when fak.number is not null then fak.number
+        else (
+                select distinct fak.number
+                from smt_pay_node
+                inner join fak on fak.id = smt_pay_node.fak_id
+                where smt_pay_node.payment_el_id = payment_el.id
+            )
+        end
+
+        from payment_el
+        inner join depozit on depozit.id = payment_el.deposit_id
+        inner join smetka on smetka.id =  payment_el.smetka_id
+        inner join opr on opr.id = smetka.opr_id
+        inner join dogovori on dogovori.id = depozit.dogovor_id
+        left join fak_deposite_node on fak_deposite_node.smetka_id = smetka.id
+        left join fak on fak.id = fak_deposite_node.fak_id
+        where not exists (select old_smt_pay_node.payment_el_id from old_smt_pay_node where old_smt_pay_node.payment_el_id = payment_el.id)
+        and depozit.id = ?
+    """
+    fdb_data_smetka_el = con_to_firebird(query, (dep_id,))
+    dep_detail = {dep_id: {'time': [], 'opr': [], 'suma': [], 'fak': []}}
+    for line in fdb_data_smetka_el:
+        dep_detail[dep_id]['time'].append(line[1])
+        dep_detail[dep_id]['opr'].append(line[3])
+        dep_detail[dep_id]['suma'].append(line[2])
+        dep_detail[dep_id]['fak'].append(line[4])
+    return dep_detail
 
 
 if __name__ == "__main__":

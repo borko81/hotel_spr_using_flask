@@ -1,4 +1,11 @@
 {% extends 'base.html' %}
+{% block css %}
+<style>
+    .dataTables_filter {
+        float: left !important;
+    }
+</style>
+{% endblock css %}
 
 {% block body %}
 <script>
@@ -6,7 +13,7 @@
 </script>
 <h2>Депозити</h2>
 
-<table class="activenast">
+<table class="activenast" id="example">
     <thead>
         <tr class="tableinfo">
             <th>Депозит Номер</th>
@@ -20,7 +27,7 @@
     <tbody>
         {% for key, d in deposits.items() %}
             <tr>
-                <td>{{ d['name'] }} / {{ d['dds'] }}%</td>
+                <td class="info" data-id='{{ key }}'>{{ d['name'] }} / {{ d['dds'] }}%</td>
                 <td>{{ d['contract'] }}</td>
                 <td>{{ d['from_who'] }}</td>   
                 <td>{{ "%.2f"|format(d['sum'][0]|float) }}</td>
@@ -31,4 +38,57 @@
     </tbody>
 </table>
 
+<div id="modal" class="modal">
+    <div class="modal-content">
+        <span class="closd">&times;</span>
+        <p id="smetka"></p>
+        <p id="detail_result"></p>
+    </div>
+</div>
+
+<script>
+    $(function () {
+        $("#example").dataTable({
+            "paging": false,
+        });
+        $('.info').on('click', function () {
+            const id = $(this).data('id')
+            const url = '/depozit_detail/' + id
+            const result = $('#detail_result')
+            result.empty()
+
+            $.ajax({
+                url: url,
+                type: 'GET',
+                success: function(response) {
+                    const data = response
+                    for (const k in data) {
+                        // for (const l in k) {
+                        //     result.append('<strong>' + data[l] + '</strong><br />')
+                        // }
+                        for(let d=0; d<data[k]['fak'].length; d++) {
+                            result.append('<strong>' + 'Фак: ' + data[k]['fak'][d] + ' Опр :' + data[k]['opr'][d] + ' Сума : ' + data[k]['suma'][d] + ' Дата :' + data[k]['time'][d] + '</strong><br/>')
+                        }
+                        
+					}
+                },
+                error: function (error) {
+                    alert(error)
+                }
+            })
+
+            $('#modal').css('display', 'block')
+        })
+
+        $('span').on('click', function () {
+                $('#modal').css('display', 'none')
+        })
+
+        window.onclick = function (event) {
+            if (event.target == modal) {
+                modal.style.display = 'none'
+            }
+        };
+    });
+</script>
 {% endblock body %}
