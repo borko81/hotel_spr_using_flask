@@ -852,6 +852,8 @@ def depozit():
         # where not exists (select old_smt_pay_node.payment_el_id from old_smt_pay_node where old_smt_pay_node.payment_el_id = payment_el.id)
         # order by 1, 6
         # """
+        
+        # New query has somthing wrong, but execute fast!
         query = """
         select
         distinct payment_el.deposit_id,
