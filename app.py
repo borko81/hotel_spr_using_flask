@@ -1,5 +1,5 @@
 from flask import Flask, redirect, url_for, render_template, request, session, flash
-from firebird.connectfdb import con_to_firebird, con_to_firebird2
+from firebird.connectfdb import con_to_firebird, con_to_firebird2, con_to_firebird3 
 
 from collections import defaultdict
 import json
@@ -855,30 +855,26 @@ def depozit():
         if session.get('logged_in') is True:
             deposits = {}
 
-            result = con_to_firebird(query=query)
+            result = con_to_firebird3(query=query)
             for line in result:
+                print(result)
                 if line[6].strip() == 'storno':
-                    continue
+                    break
+
                 if line[0] not in deposits:
                     deposits[line[0]] = {'name': line[1], 'contract': line[2],
-                                        'from_who': line[3], 'sum': [line[4]], 'time': [line[5]], 'total': line[4], 'dds': line[7]}
+                                        'from_who': line[3], 'sum': [line[4]], 'total': line[4], 'dds': line[7]}
                 else:
                     if line[6].strip() == 'in':
                         deposits[line[0]]['sum'][0] += line[4]
-                        deposits[line[0]]['time'].append(line[5])
 
                     elif line[6].strip() == 'out':
                         deposits[line[0]]['sum'].append(line[4])
-                        deposits[line[0]]['time'].append(line[5])
                         deposits[line[0]]['total'] -= line[4]
 
                     elif line[6].strip() == 'reduce':
                         deposits[line[0]]['sum'].append(-line[4])
-                        deposits[line[0]]['time'].append(line[5])
                         deposits[line[0]]['total'] -= line[4]
-
-                    elif line[6].strip() == 'storno':
-                        pass
 
             return render_template('depozit.html', deposits=deposits)
         return index()

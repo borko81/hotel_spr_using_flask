@@ -8,11 +8,10 @@ def con_to_firebird(query, *args):
     cur = con.cursor()
     try:
         cur.execute(query, *args)
-    except fdb.Error as e:
-        print(e)
-    else:
         for line in cur.fetchall():
             yield line
+    except fdb.Error as e:
+        print(e)
     finally:
         con.close()
 
@@ -22,10 +21,26 @@ def con_to_firebird2(query, *args):
     cur = con.cursor()
     try:
         cur.execute(query, *args)
+        return cur.fetchone()
     except fdb.Error as e:
         print(e)
-    else:
-        return cur.fetchone()
+    finally:
+        con.close()
+
+
+def con_to_firebird3(query, *args):
+    con = fdb.connect(**database)
+    cur = con.cursor()
+    try:
+        cur.execute(query, *args)
+        while True:
+            rows = cur.fetchmany(100)
+            if not rows:
+                break
+            for line in rows:
+                yield line
+    except fdb.Error as e:
+        print(e)
     finally:
         con.close()
 
