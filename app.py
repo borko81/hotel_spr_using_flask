@@ -821,64 +821,62 @@ def price_change():
 @app.route('/depozit', methods=['GET', 'POST'])
 def depozit():
     if session.get("logged_in") is True:
+        # query = """
+        # select
+        # depozit.id,
+        # depozit.number,
+        # dogovori.name_cyr,
+        # depozit.name,
+        # payment_el.suma,
+        # opr.date_time,
+        # case
+        # when not exists (select smt_pay_node.payment_el_id from smt_pay_node where smt_pay_node.payment_el_id = payment_el.id)
+        # AND NOT EXISTS (SELECT OPR_ANUL.ID FROM OPR_ANUL WHERE OPR_ANUL.AN_OPR_ID = SMETKA.OPR_ID)
+        # and not exists (select smetka.opr_id from smetka where opr.opr_tip_id = 33) then 'in'
+
+        # when  EXISTS (SELECT OPR_ANUL.ID FROM OPR_ANUL WHERE OPR_ANUL.AN_OPR_ID = SMETKA.OPR_ID)  then 'storno'
+
+        # when not exists (select smt_pay_node.payment_el_id from smt_pay_node where smt_pay_node.payment_el_id = payment_el.id)
+        # AND NOT EXISTS (SELECT OPR_ANUL.ID FROM OPR_ANUL WHERE OPR_ANUL.AN_OPR_ID = SMETKA.OPR_ID)
+        # and exists (select opr.opr_tip_id from opr where opr.opr_tip_id = 33) then 'reduce'
+
+        # else 'out'
+        # end,
+        # cast(dds_stavka.dds as int)
+        # from payment_el
+        # inner join depozit on depozit.id = payment_el.deposit_id
+        # inner join smetka on smetka.id =  payment_el.smetka_id
+        # inner join opr on opr.id = smetka.opr_id
+        # inner join dogovori on dogovori.id = depozit.dogovor_id
+        # inner join dds_stavka on dds_stavka.id = smetka.dds_id
+        # where not exists (select old_smt_pay_node.payment_el_id from old_smt_pay_node where old_smt_pay_node.payment_el_id = payment_el.id)
+        # order by 1, 6
+        # """
         query = """
         select
-        depozit.id,
+        distinct payment_el.deposit_id,
         depozit.number,
         dogovori.name_cyr,
         depozit.name,
-        payment_el.suma,
-        opr.date_time,
-        case
-        when not exists (select smt_pay_node.payment_el_id from smt_pay_node where smt_pay_node.payment_el_id = payment_el.id)
-        AND NOT EXISTS (SELECT OPR_ANUL.ID FROM OPR_ANUL WHERE OPR_ANUL.AN_OPR_ID = SMETKA.OPR_ID)
-        and not exists (select smetka.opr_id from smetka where opr.opr_tip_id = 33) then 'in'
-
-        when  EXISTS (SELECT OPR_ANUL.ID FROM OPR_ANUL WHERE OPR_ANUL.AN_OPR_ID = SMETKA.OPR_ID)  then 'storno'
-
-        when not exists (select smt_pay_node.payment_el_id from smt_pay_node where smt_pay_node.payment_el_id = payment_el.id)
-        AND NOT EXISTS (SELECT OPR_ANUL.ID FROM OPR_ANUL WHERE OPR_ANUL.AN_OPR_ID = SMETKA.OPR_ID)
-        and exists (select opr.opr_tip_id from opr where opr.opr_tip_id = 33) then 'reduce'
-
-        else 'out'
-        end,
-        cast(dds_stavka.dds as int)
+        dds_stavka.dds,
+        SUM(IIF(OPR.OPR_TIP_ID = 10,ROUND(PAYMENT_EL.SUMA,2),0.00)) as income,
+        SUM(IIF(OPR.OPR_TIP_ID IN (6,9,33),ROUND(PAYMENT_EL.SUMA,2),0.00)) as outcome
         from payment_el
+        INNER JOIN SMETKA ON SMETKA.ID = PAYMENT_EL.SMETKA_ID
+        INNER JOIN OPR ON OPR.ID = SMETKA.OPR_ID
         inner join depozit on depozit.id = payment_el.deposit_id
-        inner join smetka on smetka.id =  payment_el.smetka_id
-        inner join opr on opr.id = smetka.opr_id
         inner join dogovori on dogovori.id = depozit.dogovor_id
         inner join dds_stavka on dds_stavka.id = smetka.dds_id
-        where not exists (select old_smt_pay_node.payment_el_id from old_smt_pay_node where old_smt_pay_node.payment_el_id = payment_el.id)
-        order by 1, 6
+        where NOT EXISTS (SELECT OPR_ANUL.OPR_ID FROM OPR_ANUL WHERE OPR_ANUL.AN_OPR_ID = SMETKA.OPR_ID)
+        group by 1, 2, 3, 4, 5
         """
         if session.get('logged_in') is True:
             deposits = {}
 
             result = con_to_firebird(query=query)
             for line in result:
-                if line[6].strip() == 'storno':
-                    continue
                 if line[0] not in deposits:
-                    deposits[line[0]] = {'name': line[1], 'contract': line[2],
-                                        'from_who': line[3], 'sum': [line[4]], 'time': [line[5]], 'total': line[4], 'dds': line[7]}
-                else:
-                    if line[6].strip() == 'in':
-                        deposits[line[0]]['sum'][0] += line[4]
-                        deposits[line[0]]['time'].append(line[5])
-
-                    elif line[6].strip() == 'out':
-                        deposits[line[0]]['sum'].append(line[4])
-                        deposits[line[0]]['time'].append(line[5])
-                        deposits[line[0]]['total'] -= line[4]
-
-                    elif line[6].strip() == 'reduce':
-                        deposits[line[0]]['sum'].append(-line[4])
-                        deposits[line[0]]['time'].append(line[5])
-                        deposits[line[0]]['total'] -= line[4]
-
-                    elif line[6].strip() == 'storno':
-                        pass
+                    deposits[line[0]] = {'number': line[1], 'contract': line[2], 'from_who': line[3], 'dds': line[4], 'income': line[5], 'outcome': line[6], 'total': line[5] - line[6]}
 
             return render_template('depozit.html', deposits=deposits)
         return index()
