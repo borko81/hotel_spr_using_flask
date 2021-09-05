@@ -8,6 +8,7 @@ import time
 from datetime import timedelta, datetime
 import hashlib
 import logging
+import os
 
 
 # Log configuration
@@ -1041,4 +1042,4 @@ def otc():
 
 
 if __name__ == "__main__":
-    app.run(ssl_context=('cert.pem', 'key.pem'), host='0.0.0.0', debug=False)
+    app.run(ssl_context=('cert.pem', 'key.pem'), host='0.0.0.0', debug=True)

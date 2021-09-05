@@ -380,6 +380,11 @@ nav ul a {
 	height: 1000px;
   }
   
+  .menu_pic {
+	width: 20px;
+	height: 20px;
+  }
+
   @media screen and (max-width: 700px) {
 	.sidebar {
 	  width: 100%;
@@ -398,3 +403,4 @@ nav ul a {
 }
 
 /* For room card */
+
