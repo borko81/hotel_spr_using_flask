@@ -1,4 +1,7 @@
 {% extends 'base.html' %}
+{% block js %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.js"></script>
+{% endblock js %}
 {% block css %}
 <style>
     .dataTables_filter {
@@ -57,12 +60,50 @@
         {% endfor %}
     </tbody>
 </table>
+<br />
+<canvas id="myChart" style="width:100%;max-width:600px"></canvas>
 
 <script>
     $(function () {
         $("#example").dataTable({
             "paging": false,
         })
+    });
+
+    var xValues = [];
+    var yValues = [];
+    var maxVal = -999;
+    
+    {% for key, value in otc.items() %} 
+        xValues.push( '{{ strptime(key.split('_')[1], "%Y-%m-%d").strftime("%d.%m.%Y") }}' );
+        yValues.push( '{{ value.Total }}' );
+
+        if ({{ value.Total }} > maxVal) {
+            maxVal = '{{ value.Total }}'
+        }
+    {% endfor %}
+
+    console.log(maxVal);
+    
+
+    new Chart("myChart", {
+    type: "line",
+    data: {
+        labels: xValues,
+        datasets: [{
+        fill: false,
+        lineTension: 0,
+        backgroundColor: "rgba(0,0,255,1.0)",
+        borderColor: "rgba(0,0,255,0.1)",
+        data: yValues
+        }]
+    },
+    options: {
+        legend: {display: false},
+        scales: {
+        yAxes: [{ticks: { min: 100, max: parseInt(maxVal) + 1000 }}],
+        }
+    }
     });
 </script>
 {% endblock body %}
