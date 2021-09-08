@@ -45,8 +45,7 @@
 			<td class="tabletd">{{ d[4] }}</td>
 			<td class="tabletd">{{ d[5] }}</td>
 			<td class="tabletd">{{ d[6] }}</td>
-			<td class="tabletd, info" data-id='{{ d[8] }}'>{{ "%.2f"|format(d[7]|float) }} <span
-					class="small">детайли</span></td>
+			<td class="tabletd, info" data-id='{{ d[8] }}'>{{ "%.2f"|format(d[7]|float) }}</td>
 		</tr>
 		{% elif d[6]|int > d[3]|int %}
 		<tr class="occupancy">
@@ -57,8 +56,7 @@
 			<td class="tabletd">{{ d[4] }}</td>
 			<td class="tabletd">{{ d[5] }}</td>
 			<td class="tabletd">{{ d[6] }}</td>
-			<td class="tabletd, info" data-id='{{ d[8] }}'>{{ "%.2f"|format(d[7]|float) }} <span
-					class="small">детайли</span></td>
+			<td class="tabletd, info" data-id='{{ d[8] }}'>{{ "%.2f"|format(d[7]|float) }} </td>
 		</tr>
 		{% else %}
 		<tr>
@@ -69,8 +67,7 @@
 			<td class="tabletd">{{ d[4] }}</td>
 			<td class="tabletd">{{ d[5] }}</td>
 			<td class="tabletd">{{ d[6] }}</td>
-			<td class="tabletd, info" data-id='{{ d[8] }}'>{{ "%.2f"|format(d[7]|float) }} <span
-					class="small">детайли</span></td>
+			<td class="tabletd, info" data-id='{{ d[8] }}'>{{ "%.2f"|format(d[7]|float) }} </td>
 		</tr>
 		{% endif %}
 		{% endfor %}

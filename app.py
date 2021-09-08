@@ -156,6 +156,23 @@ def reservations():
         )
 
 
+@app.route("/reserve_people/<int:id>", methods=["GET"])
+@test_login_session_is_ok_or_not
+def reserve_people(id):
+    query = queryes['reserve_people']
+    query_data = con_to_firebird(query, (id,))
+    result = {'id': id, 'notes': '', 'email': '', 'people_adult': 0, 'people_child': 0, 'ref_no': ''}
+    for data in query_data:
+        result['notes'] = data[1]
+        result['email'] = data[2]
+        result['ref_no'] = data[5]
+        if data[4] == 1:
+            result['people_adult'] += 1
+        elif data[4] == 2:
+            result['people_child'] += 1
+    return result
+
+
 @app.route("/usls", methods=["GET", "POST"])
 @test_login_session_is_ok_or_not
 def usls():
@@ -261,7 +278,6 @@ def paymnet_id(room_name, kasa):
     for i in ts_smetka_el:
         data.append(json_format(str(i[0]), str(i[1])[:-10], str(i[2])))
     return json.dumps(data)
-
 
 
 @app.route("/fak", methods=["GET", "POST"])

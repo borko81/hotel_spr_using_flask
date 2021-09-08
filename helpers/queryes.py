@@ -470,5 +470,19 @@ queryes = {
         inner join users on users.id = opr.user_id
         where otc.otc_date between ? and ?
         """,
-
+    'reserve_people': """
+        select
+        reserve.id,
+        reserve.notes as notes,
+        reserve.email as email,
+        nast.id,
+        case when
+        nast.child_age is null then 1
+        else 2
+        end as nast_age,
+        reserve.ref_no
+        from reserve
+        inner join nast on nast.reserve_id = reserve.id
+        where reserve.id = ?
+        """,
 }
