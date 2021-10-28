@@ -485,4 +485,49 @@ queryes = {
         inner join nast on nast.reserve_id = reserve.id
         where reserve.id = ?
         """,
+    'nutrition': """
+            select
+            rooms.name,
+            nast.id,
+            nast.check_in_date,
+            DATEADD(day,nast.days, nast.check_in_date),
+            COALESCE(nast.child_age, 150),
+            dogovori.name_cyr,
+            usl.f_type_pansion,
+            coalesce((
+                select
+                case
+                        when usl.f_type_pansion = 1 then 'Закуска'
+                        when usl.f_type_pansion = 2 then 'Обяд'
+                        when usl.f_type_pansion = 3 then 'Вечеря'
+                        when usl.f_type_pansion = 4 then 'Закуска-Вечеря'
+                        when usl.f_type_pansion = 5 then 'Закуска-Вечеря'
+                        when usl.f_type_pansion = 6 then 'Обяд-Вечеря'
+                        when usl.f_type_pansion = 7 then 'Закуска-Обяд-Вечеря'
+                end
+                from pansion
+                inner join usl on usl.id = pansion.usl_id
+                where pansion.id = nast.pansion_id
+
+            ) ,''),
+            case
+                when usl.f_type_pansion = 1 then 'Закуска'
+                when usl.f_type_pansion = 2 then 'Обяд'
+                when usl.f_type_pansion = 3 then 'Вечеря'
+                when usl.f_type_pansion = 4 then 'Закуска-Вечеря'
+                when usl.f_type_pansion = 5 then 'Закуска-Вечеря'
+                when usl.f_type_pansion = 6 then 'Обяд-Вечеря'
+                when usl.f_type_pansion = 7 then 'Закуска-Обяд-Вечеря'
+                else '-'
+            end
+            from nast
+            inner join rooms on rooms.id = nast.room_id
+            inner join dogovori on dogovori.id = nast.dogovor_id
+            inner join usl on usl.id = dogovori.def_usl_id
+            where ? between nast.check_in_date
+            and DATEADD(day,nast.days, nast.check_in_date)
+            and nast.is_deleted = 0
+            and nast.state = 0
+            order by 1,2,4
+    """,
 }

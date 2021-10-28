@@ -1,6 +1,6 @@
 # Import Flask module\s
 from flask import Flask, redirect, url_for, render_template, request, session, flash
-from firebird.connectfdb import con_to_firebird, con_to_firebird2 
+from firebird.connectfdb import con_to_firebird, con_to_firebird2
 
 # Import external module's
 from collections import defaultdict
@@ -24,8 +24,7 @@ logging.basicConfig(filename="logfilename.log", level=logging.DEBUG)
 
 
 # ПОЛЗВА СЕ ЗА ПРОМЯНА НА ДАТТА ПО НАШИЯ СТАНДАРТ, МОЖЕ ДА СЕ ДОБАВЯТ И ДРУГИ ФОРМАТИ
-context = {"now": int(time.time()), "strftime": time.strftime,
-           "strptime": datetime.strptime}
+context = {"now": int(time.time()), "strftime": time.strftime, "strptime": datetime.strptime}
 
 # Configure app and config
 app = Flask(__name__)
@@ -36,7 +35,7 @@ app.config["SECRET_KEY"] = "Bork@"
 
 def generate_dates_range():
     """
-        Generate list with dates for card
+    Generate list with dates for card
     """
     today = datetime.now().date()
     dates = []
@@ -69,9 +68,12 @@ def index():
 def login():
     user_credential = hashlib.sha256()
     password_credential = hashlib.sha256()
-    user_credential.update(request.form["username"].encode('utf-8'))
-    password_credential.update(request.form["password"].encode('utf-8'))
-    if user_credential.hexdigest() == "694f9239193cd42447a703b48e6759b6c9917587064798bb14ad020a3b3b8539" and password_credential.hexdigest() == "694f9239193cd42447a703b48e6759b6c9917587064798bb14ad020a3b3b8539":
+    user_credential.update(request.form["username"].encode("utf-8"))
+    password_credential.update(request.form["password"].encode("utf-8"))
+    if (
+        user_credential.hexdigest() == "694f9239193cd42447a703b48e6759b6c9917587064798bb14ad020a3b3b8539"
+        and password_credential.hexdigest() == "694f9239193cd42447a703b48e6759b6c9917587064798bb14ad020a3b3b8539"
+    ):
         session.permanent = False
         session["logged_in"] = True
         logging.info(f"[+] IP {request.remote_addr} connect Succsessfully at {datetime.now()}")
@@ -93,7 +95,7 @@ def logout():
 def info():
     """Списък с настанените гости в списъка гости"""
     action = "/info"
-    query = queryes['active_nast']
+    query = queryes["active_nast"]
     fdb_data = con_to_firebird(query)
     return render_template("index.html", action=action, fdb_data=fdb_data, title="гости", **context)
 
@@ -104,7 +106,7 @@ def detail_info(guest_id):
     """
     ДЕТЕЙЛИТЕ НА СМЕТАТА, ВИКАТ СЕ В МОДАЛНИЯТ ДИАЛОГ
     """
-    query = queryes['active_nast_detail_smt']
+    query = queryes["active_nast_detail_smt"]
     fdb_data_smetka_el = con_to_firebird(query, (guest_id,))
     detail_data = {}
     for line in fdb_data_smetka_el:
@@ -122,16 +124,15 @@ def reservations():
     if request.method == "GET":
         return redirect(url_for("insertdata"))
     else:
-        query = queryes['list_with_reservations']
+        query = queryes["list_with_reservations"]
         # Perspectivna zaetost
-        q = queryes['reservations_total_room_room_remain']
-        
+        q = queryes["reservations_total_room_room_remain"]
+
         result = defaultdict(list)
         # End of perp zaetos
         f_data, l_data = get_user_dates_or_return_today()
 
-        dates = datetime.strptime(
-            l_data, "%Y-%m-%d") - datetime.strptime(f_data, "%Y-%m-%d")
+        dates = datetime.strptime(l_data, "%Y-%m-%d") - datetime.strptime(f_data, "%Y-%m-%d")
         for i in range(dates.days + 1):
             day = datetime.strptime(f_data, "%Y-%m-%d") + timedelta(days=i)
             for line in con_to_firebird(q, (str(day)[:-9], str(day)[:-9])):
@@ -152,24 +153,24 @@ def reservations():
             fdb_reservations=fdb_reservations,
             title="резервации",
             Result=Result,
-            **context
+            **context,
         )
 
 
 @app.route("/reserve_people/<int:id>", methods=["GET"])
 @test_login_session_is_ok_or_not
 def reserve_people(id):
-    query = queryes['reserve_people']
+    query = queryes["reserve_people"]
     query_data = con_to_firebird(query, (id,))
-    result = {'id': id, 'notes': '', 'email': '', 'people_adult': 0, 'people_child': 0, 'ref_no': ''}
+    result = {"id": id, "notes": "", "email": "", "people_adult": 0, "people_child": 0, "ref_no": ""}
     for data in query_data:
-        result['notes'] = data[1]
-        result['email'] = data[2]
-        result['ref_no'] = data[5]
+        result["notes"] = data[1]
+        result["email"] = data[2]
+        result["ref_no"] = data[5]
         if data[4] == 1:
-            result['people_adult'] += 1
+            result["people_adult"] += 1
         elif data[4] == 2:
-            result['people_child'] += 1
+            result["people_child"] += 1
     return result
 
 
@@ -182,8 +183,8 @@ def usls():
     if request.method == "GET":
         return redirect(url_for("insertdata"))
     else:
-        query_paid = queryes['usl_paid']
-        query_accrued = queryes['usl_accuired']
+        query_paid = queryes["usl_paid"]
+        query_accrued = queryes["usl_accuired"]
         f_data, l_data = get_user_dates_or_return_today()
 
         fdb_reservations_paid = con_to_firebird(
@@ -207,7 +208,7 @@ def usls():
             fdb_reservations_paid=fdb_reservations_paid,
             fdb_reservations_accured=fdb_reservations_accured,
             title="услуги",
-            **context
+            **context,
         )
 
 
@@ -221,7 +222,7 @@ def room_landing():
     if request.method == "GET":
         return redirect(url_for("insertdata"))
     else:
-        query = queryes['room_landing']
+        query = queryes["room_landing"]
         f_data, l_data = get_user_dates_or_return_today()
 
         fdb_room_landing = con_to_firebird(
@@ -232,12 +233,7 @@ def room_landing():
             ),
         )
         return render_template(
-            "room_landing.html",
-            f_data=f_data,
-            l_data=l_data,
-            title=title,
-            fdb_room_landing=fdb_room_landing,
-            **context
+            "room_landing.html", f_data=f_data, l_data=l_data, title=title, fdb_room_landing=fdb_room_landing, **context
         )
 
 
@@ -245,7 +241,7 @@ def room_landing():
 @test_login_session_is_ok_or_not
 def payment():
     if request.method == "POST":
-        query = queryes['bill']
+        query = queryes["bill"]
         query_get_kasa_name = """select ts_kasa.name_lat from ts_kasa"""
         roomname = request.form["roomsinfo"]
         room_payment = con_to_firebird(query, (roomname.upper(),))
@@ -261,7 +257,7 @@ def payment():
 @app.route("/payment/<string:room_name>/<string:kasa>", methods=["GET", "POST"])
 @test_login_session_is_ok_or_not
 def paymnet_id(room_name, kasa):
-    query_ts_smetka_el = queryes['smetka_el']
+    query_ts_smetka_el = queryes["smetka_el"]
 
     def json_format(name, datetime, price):
         r = {"name": name, "datatime": datetime, "price": price}
@@ -290,7 +286,7 @@ def fak():
     if request.method == "GET":
         return redirect(url_for("insertdata"))
     else:
-        q = queryes['all_fak']
+        q = queryes["all_fak"]
         f_data, l_data = get_user_dates_or_return_today()
 
         fdb_fakturi = con_to_firebird(
@@ -308,7 +304,7 @@ def fak():
 @app.route("/fak/<string:id>", methods=["GET", "POST"])
 @test_login_session_is_ok_or_not
 def fak_detail(id):
-    q = queryes['fak_detail']
+    q = queryes["fak_detail"]
     fdb_faktura_detail = con_to_firebird(q, (id,))
     # detail_data = defaultdict(list)
 
@@ -343,12 +339,12 @@ def fak_detail(id):
 @app.route("/housekeeping", methods=["GET"])
 @test_login_session_is_ok_or_not
 def housekeeping():
-    active_people_and_room = queryes['daili_report_active_people_and_room']
-    expected_room_and_people = queryes['daili_report_expected_room_and_people']
-    expected_out_room_and_people = queryes['daili_report_expected_out_room_and_people']
-    out_of_order = queryes['daili_report_out_of_order']
-    dirty_room = queryes['daili_report_dirty_room']
-    
+    active_people_and_room = queryes["daili_report_active_people_and_room"]
+    expected_room_and_people = queryes["daili_report_expected_room_and_people"]
+    expected_out_room_and_people = queryes["daili_report_expected_out_room_and_people"]
+    out_of_order = queryes["daili_report_out_of_order"]
+    dirty_room = queryes["daili_report_dirty_room"]
+
     room = con_to_firebird2(active_people_and_room)
     expected_in = con_to_firebird2(expected_room_and_people)
     expected_out = con_to_firebird2(expected_out_room_and_people)
@@ -372,25 +368,25 @@ def housekeeping():
 @app.route("/dirty", methods=["GET"])
 @test_login_session_is_ok_or_not
 def dirty():
-    rooms_status = queryes['rooms_status']
+    rooms_status = queryes["rooms_status"]
     status = con_to_firebird(rooms_status)
     return render_template("dirty_rooms.html", status=status)
 
 
-@app.route('/cart_dirty', methods=['GET'])
+@app.route("/cart_dirty", methods=["GET"])
 @test_login_session_is_ok_or_not
 def cart_dirty():
-    rooms_status = queryes['card_dirty']
+    rooms_status = queryes["card_dirty"]
     context = con_to_firebird(rooms_status)
-    return render_template('room_cleanup.html', context=context)
+    return render_template("room_cleanup.html", context=context)
 
 
-@app.route('/reservations_card')
+@app.route("/reservations_card")
 @test_login_session_is_ok_or_not
 def reservations_card():
     query_rooms_names = """select rooms.name, rooms.id from rooms order by 1"""
 
-    query_reserver = queryes['reservation_in_card']
+    query_reserver = queryes["reservation_in_card"]
     reserve = con_to_firebird(query_reserver)
 
     data = {}
@@ -400,13 +396,13 @@ def reservations_card():
         out = str(out.strftime("%d.%m.%Y"))
         if room not in data:
             data[room] = []
-        data[room].append({'id': id_house, 'in': in_house, 'out': out})
+        data[room].append({"id": id_house, "in": in_house, "out": out})
 
     rooms = con_to_firebird(query_rooms_names)
-    return render_template('reservations_card.html', rooms=rooms, dates=generate_dates_range(), data=data)
+    return render_template("reservations_card.html", rooms=rooms, dates=generate_dates_range(), data=data)
 
 
-@app.route('/price_change', methods=["GET", "POST"])
+@app.route("/price_change", methods=["GET", "POST"])
 @test_login_session_is_ok_or_not
 def price_change():
     if request.method == "GET":
@@ -414,89 +410,186 @@ def price_change():
 
     f_data, l_data = get_user_dates_or_return_today()
 
-    query = queryes['operator_change_price']
-    mistake = con_to_firebird(query, (f_data, l_data, ))
-    return render_template('price_change.html', mistakes=mistake)
+    query = queryes["operator_change_price"]
+    mistake = con_to_firebird(
+        query,
+        (
+            f_data,
+            l_data,
+        ),
+    )
+    return render_template("price_change.html", mistakes=mistake)
 
 
-@app.route('/depozit', methods=['GET', 'POST'])
+@app.route("/depozit", methods=["GET", "POST"])
 @test_login_session_is_ok_or_not
 def depozit():
-    query = queryes['depozits']
+    query = queryes["depozits"]
     deposits = {}
 
     result = con_to_firebird(query=query)
     for line in result:
         if line[0] not in deposits:
-            deposits[line[0]] = {'number': line[1], 'contract': line[2], 'from_who': line[3], 'dds': line[4], 'income': line[5], 'outcome': line[6], 'total': line[5] - line[6]}
+            deposits[line[0]] = {
+                "number": line[1],
+                "contract": line[2],
+                "from_who": line[3],
+                "dds": line[4],
+                "income": line[5],
+                "outcome": line[6],
+                "total": line[5] - line[6],
+            }
 
-    return render_template('depozit.html', deposits=deposits)
+    return render_template("depozit.html", deposits=deposits)
 
 
-@app.route('/depozit_detail/<int:dep_id>')
+@app.route("/depozit_detail/<int:dep_id>")
 @test_login_session_is_ok_or_not
 def depozit_detail(dep_id):
     """
-        Return depozits spr
+    Return depozits spr
     """
-    query = queryes['concrete_depozit_detail']
+    query = queryes["concrete_depozit_detail"]
     fdb_data_smetka_el = con_to_firebird(query, (dep_id,))
-    dep_detail = {dep_id: {'time': [], 'opr': [], 'suma': [], 'fak': []}}
+    dep_detail = {dep_id: {"time": [], "opr": [], "suma": [], "fak": []}}
     for line in fdb_data_smetka_el:
-        dep_detail[dep_id]['time'].append(line[1])
-        dep_detail[dep_id]['opr'].append(line[3])
-        dep_detail[dep_id]['suma'].append(line[2])
-        dep_detail[dep_id]['fak'].append(line[4])
+        dep_detail[dep_id]["time"].append(line[1])
+        dep_detail[dep_id]["opr"].append(line[3])
+        dep_detail[dep_id]["suma"].append(line[2])
+        dep_detail[dep_id]["fak"].append(line[4])
     return dep_detail
 
 
-@app.route('/otc', methods=["GET", "POST"])
+@app.route("/otc", methods=["GET", "POST"])
 @test_login_session_is_ok_or_not
 def otc():
     """
-        Return spr for otc in period
+    Return spr for otc in period
     """
     if request.method == "GET":
-        return redirect(url_for("insertdata", name='otc'))
+        return redirect(url_for("insertdata", name="otc"))
 
     f_data, l_data = get_user_dates_or_return_today()
 
-    title = 'otc'
-    query = queryes['otc']
-    query_result = con_to_firebird(query, (f_data, l_data, ))
+    title = "otc"
+    query = queryes["otc"]
+    query_result = con_to_firebird(
+        query,
+        (
+            f_data,
+            l_data,
+        ),
+    )
     otc = {}
     for line in query_result:
         target = "_".join([str(line[0]), str(line[1]), str(line[2]), str(line[3])])
         if target not in otc:
-            otc[target] = {'cash': 0, 'Bank': 0, 'Avans': 0, 'Card': 0, 'Total': 0, 'Nights': 0, 'Spa': 0, 'Pansion': 0, 'Usl': 0, 'TTT': 0, 'UsD': 0, 'IncomeD': 0}
-        if line[4].strip() == 'В брой' and otc[target]['cash'] != line[5]:
-            otc[target]['cash'] += line[5]
-        elif line[4].strip() == 'Карта' and otc[target]['Card'] != line[5]:
-            otc[target]['Card'] += line[5]
-        elif line[4].strip() == 'По банка' and otc[target]['Bank'] != line[5]:
-            otc[target]['Bank'] += line[5]
-        elif line[4].strip() == 'От Аванс' and otc[target]['Avans'] != line[5]:
-            otc[target]['Avans'] += line[5]
-        elif line[4].strip() == 'Тотал' and otc[target]['Total'] != line[5]:
-            otc[target]['Total'] += line[5]
-        elif line[4].strip() == 'Нощувки' and otc[target]['Nights'] != line[5]:
-            otc[target]['Nights'] += line[5]
-        elif line[4].strip() == 'Спа' and otc[target]['Spa'] != line[5]:
-            otc[target]['Spa'] += line[5]
-        elif line[4].strip() == 'Пансиони' and otc[target]['Pansion'] != line[5]:
-            otc[target]['Pansion'] += line[5]
-        elif line[4].strip() == 'Услуги' and otc[target]['Usl'] != line[5]:
-            otc[target]['Usl'] += line[5]
-        elif line[4].strip() == 'Т. обекти' and otc[target]['TTT'] != line[5]:
-            otc[target]['TTT'] += line[5]
-        elif line[4].strip() == 'Усвоен депозит' and otc[target]['UsD'] != line[5]:
-            otc[target]['UsD'] += line[5]
-        elif line[4].strip() == 'Зареждане на аванс' and otc[target]['IncomeD'] != line[5]:
-            otc[target]['IncomeD'] += line[5]
+            otc[target] = {
+                "cash": 0,
+                "Bank": 0,
+                "Avans": 0,
+                "Card": 0,
+                "Total": 0,
+                "Nights": 0,
+                "Spa": 0,
+                "Pansion": 0,
+                "Usl": 0,
+                "TTT": 0,
+                "UsD": 0,
+                "IncomeD": 0,
+            }
+        if line[4].strip() == "В брой" and otc[target]["cash"] != line[5]:
+            otc[target]["cash"] += line[5]
+        elif line[4].strip() == "Карта" and otc[target]["Card"] != line[5]:
+            otc[target]["Card"] += line[5]
+        elif line[4].strip() == "По банка" and otc[target]["Bank"] != line[5]:
+            otc[target]["Bank"] += line[5]
+        elif line[4].strip() == "От Аванс" and otc[target]["Avans"] != line[5]:
+            otc[target]["Avans"] += line[5]
+        elif line[4].strip() == "Тотал" and otc[target]["Total"] != line[5]:
+            otc[target]["Total"] += line[5]
+        elif line[4].strip() == "Нощувки" and otc[target]["Nights"] != line[5]:
+            otc[target]["Nights"] += line[5]
+        elif line[4].strip() == "Спа" and otc[target]["Spa"] != line[5]:
+            otc[target]["Spa"] += line[5]
+        elif line[4].strip() == "Пансиони" and otc[target]["Pansion"] != line[5]:
+            otc[target]["Pansion"] += line[5]
+        elif line[4].strip() == "Услуги" and otc[target]["Usl"] != line[5]:
+            otc[target]["Usl"] += line[5]
+        elif line[4].strip() == "Т. обекти" and otc[target]["TTT"] != line[5]:
+            otc[target]["TTT"] += line[5]
+        elif line[4].strip() == "Усвоен депозит" and otc[target]["UsD"] != line[5]:
+            otc[target]["UsD"] += line[5]
+        elif line[4].strip() == "Зареждане на аванс" and otc[target]["IncomeD"] != line[5]:
+            otc[target]["IncomeD"] += line[5]
 
-    return render_template('otc.html', otc=otc, title=title, **context)
+    return render_template("otc.html", otc=otc, title=title, **context)
 
+
+@app.route("/nutrition", methods=["GET", "POST"])
+@test_login_session_is_ok_or_not
+def nutrition():
+    """
+    After get date for query, tracert for boarding
+    Not add people who income in today date for breakfast and exclude these why leave house in date
+    for dinner, lunch not touched.
+    """
+    if request.method == "GET":
+        return redirect(url_for("insertdata", name="nutrition"))
+
+    query = queryes["nutrition"]
+    f_data, l_data = get_user_dates_or_return_today()
+    result = con_to_firebird(query, (f_data,))
+    food_for_day = {"breakfast": {}, "lunch": {}, "dinner": {}}
+    breakfast_total = {"adult": 0, "child": 0}
+    lunch_total = {"adult": 0, "child": 0}
+    dinner_total = {"adult": 0, "child": 0}
+
+    for line in result:
+        room = line[0]
+        check_id = str(line[2])
+        check_out = str(line[3])
+        age = line[4]
+        contract = line[5]
+        food = list(set(((line[7].strip() + "-" + line[8].strip()).lstrip("-")).split("-")))
+        for f in food:
+
+            if f == "Закуска" and not f_data == check_id:
+                if room not in food_for_day["breakfast"]:
+                    food_for_day["breakfast"][room] = {"adult": 0, "child": 0, "contract": contract}
+                if age > 100:
+                    food_for_day["breakfast"][room]["adult"] += 1
+                    breakfast_total["adult"] += 1
+                else:
+                    food_for_day["breakfast"][room]["child"] += 1
+                    breakfast_total["child"] += 1
+
+            elif f == "Вечеря" and not f_data == check_out:
+                if room not in food_for_day["dinner"]:
+                    food_for_day["dinner"][room] = {"adult": 0, "child": 0, "contract": contract}
+                if age > 100:
+                    food_for_day["dinner"][room]["adult"] += 1
+                    dinner_total["adult"] += 1
+                else:
+                    food_for_day["dinner"][room]["child"] += 1
+                    dinner_total["child"] += 1
+
+            elif f == "Обяд":
+                if room not in food_for_day["lunch"]:
+                    food_for_day["lunch"][room] = {"adult": 0, "child": 0, "contract": contract}
+                if age > 100:
+                    food_for_day["lunch"][room]["adult"] += 1
+                    lunch_total["adult"] += 1
+                else:
+                    food_for_day["lunch"][room]["child"] += 1
+                    lunch_total["child"] += 1
+
+    return render_template(
+        "boarding_for_date.html", food_for_day=food_for_day, f_data=f_data,
+        breakfast_total=breakfast_total, lunch_total=lunch_total,
+        dinner_total=dinner_total
+    )
 
 
 if __name__ == "__main__":
-    app.run(ssl_context=('cert.pem', 'key.pem'), host='0.0.0.0', debug=True)
+    app.run(ssl_context=("cert.pem", "key.pem"), host="0.0.0.0", debug=True)
