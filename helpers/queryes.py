@@ -379,7 +379,8 @@ queryes = {
             rooms.name,
             users.name_cyr,
             nast_edit.old_price,
-            nast_edit.new_price
+            nast_edit.new_price,
+            nast_edit.nast_id
             from nast_edit
             inner join users on users.id = nast_edit.user_id
             inner join nast on nast.id = nast_edit.nast_id
@@ -530,4 +531,13 @@ queryes = {
             and nast.state = 0
             order by 1,2,4
     """,
+    'price_change_info': """
+        select
+        bulgarians.name || ' ' || bulgarians.family,
+        dogovori.name_cyr
+        from nast
+        inner join bulgarians on bulgarians.id = nast.bul_id
+        inner join dogovori on dogovori.id = nast.dogovor_id
+        where nast.id = ?
+    """
 }

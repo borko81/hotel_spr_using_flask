@@ -1,5 +1,5 @@
 * {
-	font-family: Arial, Helvetica, sans-serif;
+	font-family: "Helvetica Neue", Arial, sans-serif;
 
 }
 
@@ -80,7 +80,7 @@ body {
 body {
 	margin: 0;
 	padding: 0;
-	font-family:Sans-serif;
+	font-family: "Helvetica Neue", Arial, sans-serif;
 	line-height: 1.5em;
 }
 
@@ -388,12 +388,23 @@ nav ul a {
 
   @media screen and (max-width: 700px) {
 	.sidebar {
-	  width: 100%;
+	  width: 95%;
 	  height: auto;
 	  position: relative;
+	  margin-left: 25px;
+	  display: grid;
+	  grid-template-columns: repeat(3, 1fr);
+	  row-gap: 0;
+	  column-gap: 0;
 	}
-	.sidebar a {float: left;}
-	div.content {margin-left: 0;}
+	.sidebar a {
+		float: left;
+		font-size: 10px;
+	}
+	div.content {
+		margin-left: 0;
+		font-size: 10px;
+	}
   }
   
   @media screen and (max-width: 400px) {

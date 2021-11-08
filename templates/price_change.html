@@ -3,41 +3,90 @@
 {% block css %}{% endblock css %}
 
 {% block body %}
-    <script>
-        document.getElementById("generalform").style.display="none";
-    </script>
-    <table class="activenast">
-        <tr class="tableinfo">
-			<th>Дата</th>
-			<th>Стая</th>
-			<th>Оператор</th>
-			<th>Стара цена</th>
-			<th>Нова цена</th>
-		</tr>
-        {% for mistake in mistakes %}
-            <tr>
-                <td class="tabletd">
-                    {{ mistake[0].strftime('%d.%m.%Y %H:%M') }}
-                </td>
-                <td class="tabletd">
-                    {{ mistake[1] }}
-                </td>
-                <td class="tabletd">
-                    {{ mistake[2] }}
-                </td>
-                <td class="tabletd">
-                    {{ '%0.2f' % mistake[3]|float }}
-                </td>
-                {% if mistake[4] < mistake[3] %}
-                    <td class="tabletd occupancy">
-                        {{ '%0.2f' % mistake[4]|float }}
-                    </td>
-                {% else %}
-                    <td class="tabletd maintenance_room">
-                        {{ '%0.2f' % mistake[4]|float }}
-                    </td>
-                {% endif %}
-            </tr>
-        {% endfor %}
-    </table>
+<script>
+    document.getElementById("generalform").style.display = "none";
+</script>
+<table class="activenast">
+    <tr class="tableinfo">
+        <th>Дата</th>
+        <th>Стая</th>
+        <th>Оператор</th>
+        <th>Стара цена</th>
+        <th>Нова цена</th>
+    </tr>
+    {% for mistake in mistakes %}
+    <tr>
+        <td class="tabletd">
+            {{ mistake[0].strftime('%d.%m.%Y %H:%M') }}
+        </td>
+        <td class="tabletd info" data-id='{{ mistake[5] }}'>
+            {{ mistake[1] }}
+        </td>
+        <td class="tabletd">
+            {{ mistake[2] }}
+        </td>
+        <td class="tabletd">
+            {{ '%0.2f' % mistake[3]|float }}
+        </td>
+        {% if mistake[4] < mistake[3] %} <td class="tabletd occupancy">
+            {{ '%0.2f' % mistake[4]|float }}
+            </td>
+            {% else %}
+            <td class="tabletd maintenance_room">
+                {{ '%0.2f' % mistake[4]|float }}
+            </td>
+            {% endif %}
+    </tr>
+    {% endfor %}
+</table>
+
+<div id="modal" class="modal">
+    <div class="modal-content">
+        <span class="closd">&times;</span>
+        <p id="smetka"></p>
+        <p id="detail_result"></p>
+    </div>
+</div>
+
+<script>
+    $(function () {
+        $(".example").dataTable({
+            "paging": false,
+        });
+        $('.info').on('click', function () {
+            const id = $(this).data('id')
+            const result = $('#detail_result')
+            result.empty()
+            $('#smetka').text(`Редакция на сметка детаили гост id: ${id}`)
+            url = '/price/' + id
+            $.ajax({
+                url: url,
+                type: 'GET',
+                success: function (response) {
+                    const data = response
+                    for (const k in data) {
+                        result.append(
+                            '<div width="450px"><strong>' + k + '</strong><div>'
+                            + '&nbsp;&nbsp;&nbsp;' + data[k] + '<br />'
+                        )
+                    }
+                },
+                error: function (error) {
+                    alert(error)
+                }
+            })
+            $('#modal').css('display', 'block')
+        })
+
+        $('span').on('click', function () {
+            $('#modal').css('display', 'none')
+        })
+    });
+
+    window.onclick = function (event) {
+        if (event.target == modal) {
+            modal.style.display = 'none'
+        }
+    };
+</script>
 {% endblock body %}

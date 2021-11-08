@@ -421,6 +421,20 @@ def price_change():
     return render_template("price_change.html", mistakes=mistake)
 
 
+@app.route("/price/<int:guest_id>")
+@test_login_session_is_ok_or_not
+def price_change_info(guest_id):
+    """
+    ДЕТЕЙЛИТЕ НА СМЕТАТА, ВИКАТ СЕ В МОДАЛНИЯТ ДИАЛОГ
+    """
+    query = queryes["price_change_info"]
+    fdb_data_smetka_el = con_to_firebird(query, (guest_id,))
+    detail_data = {}
+    for line in fdb_data_smetka_el:
+        detail_data[line[0]] = line[1]
+    return detail_data
+
+
 @app.route("/depozit", methods=["GET", "POST"])
 @test_login_session_is_ok_or_not
 def depozit():
@@ -592,4 +606,4 @@ def nutrition():
 
 
 if __name__ == "__main__":
-    app.run(ssl_context=("cert.pem", "key.pem"), host="0.0.0.0", debug=True)
+    app.run(ssl_context=("cert.pem", "key.pem"), host="0.0.0.0", debug=False)

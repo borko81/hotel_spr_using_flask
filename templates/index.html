@@ -99,7 +99,10 @@
 				success: function (response) {
 					const data = response
 					for (const k in data) {
-						result.append('<strong>' + k + '</strong>' + '&nbsp;&nbsp;&nbsp;' + Math.round(parseFloat(data[k]) * 100) / 100 + ' лв' + '<br />')
+						result.append(
+							'<div width="450px"><strong>' + k + '</strong><div>'
+								 + '&nbsp;&nbsp;&nbsp;' + Math.round(parseFloat(data[k]) * 100) / 100 + ' лв' + '<br />'
+						)
 					}
 				},
 				error: function (error) {
