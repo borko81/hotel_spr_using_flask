@@ -416,3 +416,8 @@ nav ul a {
 
 /* For room card */
 
+.fak_info{
+	display: none;
+    width: auto;
+    max-height: 400px;
+}

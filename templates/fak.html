@@ -23,7 +23,24 @@
 			</tr>
 			{% for d in fdb_fakturi %}
 				<tr>
-					<td class="fakinfo" data-id="/fak/{{ d[1] }}">{{ d[1] }}</td>
+					<td class="fakinfo" data-id="{{ d[1] }}">{{ d[1] }}
+					
+						<div class="fak_info">
+							<table class="activenast" id="fak_detail{{ d[1] }}">
+								<tr class="tableinfo">
+									<th class="tabletd">N:</th>
+									<th class="tabletd">Техт</th>
+									<th class="tabletd">Количество</th>
+									<th class="tabletd">Цена</th>
+									<th class="tabletd">Сума ДДС</th>
+									<th class="tabletd">Тотал</th>
+									<th class="tabletd">ДДС</th>
+								</tr>
+							</table>
+						</div>
+
+					</td>
+
 					<td class="tabletd">{{ d[2] }}</td>
 					<td class="tabletd">{{ d[3] }}</td>
 					<td class="tabletd">{{ d[4] }}</td>
@@ -36,25 +53,27 @@
 		</table>
 		<br />
 		<hr>
-		<table class="activenast" id="fak_detail">
-			<tr class="tableinfo">
-				<th class="tabletd">N:</th>
-				<th class="tabletd">Техт</th>
-				<th class="tabletd">Количество</th>
-				<th class="tabletd">Цена</th>
-				<th class="tabletd">Сума ДДС</th>
-				<th class="tabletd">Тотал</th>
-				<th class="tabletd">ДДС</th>
-			</tr>
-		</table>
 
 	<script type="text/javascript">
 		$(function () {
    			$('.fakinfo').on('click', function () {
+			let info_target = $(this).parent().find('.fak_info')
+
+			if (info_target.css('display') == 'none' ) {
+				setTimeout(function(){
+					info_target.fadeIn('slow')
+				}, 300)
+				
+			} else {
+				setTimeout(function(){
+					info_target.fadeOut('slow')
+				}, 300)
+			}
+			
 	      	const id = $(this).data('id')
-	      	const table = document.getElementById("fak_detail");
+	      	const table = document.getElementById("fak_detail" + id);
 	      	var tr = $(this).closest('tr');
-	      	url = 'https://' + window.location.hostname + ':5000' + id
+	      	url = 'https://' + window.location.hostname + ':5000/fak/' + id
 			//url = 'http://' + vg.unrealsoft.bg + ':5000' + id
 	      	$.ajax({
 		        url: url,
@@ -65,7 +84,7 @@
 	        		// tr.fadeOut(1000, function(){
            //              $(this).remove();
            //          });
-           			$("#fak_detail").find("tr:gt(0)").remove();
+           			$("#fak_detail" + id).find("tr:gt(0)").remove();
 	          		for (let k in response) {
 	          			let valaing = response[k]
 
