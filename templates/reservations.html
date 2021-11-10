@@ -2,15 +2,18 @@
 
 {% block css %}
 <style>
-    .dataTables_filter {
-        float: left !important;
-    }
+	.dataTables_filter {
+		float: left !important;
+	}
+
 	.reservation_ok {
 		background-color: #DAE9BC !important;
 	}
+
 	.occupancy {
 		background-color: lightpink !important;
 	}
+
 	.dirty_room {
 		background-color: lightgray !important;
 	}
@@ -18,16 +21,50 @@
 {% endblock css %}
 
 {% block body %}
-	<script>
-		document.getElementById("generalform").style.display="none";
-	</script>
+<script>
+	document.getElementById("generalform").style.display = "none";
+</script>
 
-	<h3>Списък с резерациите за период: {{ strptime(f_data, "%Y-%m-%d").strftime("%d.%m.%Y") }} до {{ strptime(l_data, "%Y-%m-%d").strftime("%d.%m.%Y") }}</h3>
-	<table class="activenast" id="example2">
+<h3>Списък с резерациите за период: {{ strptime(f_data, "%Y-%m-%d").strftime("%d.%m.%Y") }} до {{ strptime(l_data,
+	"%Y-%m-%d").strftime("%d.%m.%Y") }}</h3>
+<table class="activenast" id="example2">
+	<thead>
+		<tr class="tableinfo">
+			<th>No</th>
+			<!-- <th>Статус</th> -->
+			<th>Check In</th>
+			<th>Check Out</th>
+			<th>Days</th>
+			<th>Rooms</th>
+			<th>Contract</th>
+			<th>FromWho</th>
+			<th>Tel</th>
+			<th>Vaucher</th>
+			<th>Food</th>
+			<th>Bill</th>
+		</tr>
+	</thead>
+	<tbody>
+		{% for d in fdb_reservations %}
+		<tr class="show_more">
+			<td class="tabletd, info" data-id='{{ d[0] }}'>{{ d[0] }} </td>
+			<!-- <td class="tabletd res_status">{{ d[11] }}</td> -->
+			<td class="tabletd">{{ d[1] }}</td>
+			<td class="tabletd">{{ d[2] }}</td>
+			<td class="tabletd">{{ d[3] }}</td>
+			<td class="tabletd">{{ d[4] }}</td>
+			<td class="tabletd">{{ d[5] }}</td>
+			<td class="tabletd">{{ d[6] }}</td>
+			<td class="tabletd">{{ d[7] }}</td>
+			<td class="tabletd">{{ d[8] }}</td>
+			<td class="tabletd">{{ d[9] }}</td>
+			<td class="tabletd count_me">{{ "%.2f"|format(d[10]) }}</td>
+		</tr>
+		{% endfor %}
 		<thead>
 			<tr class="tableinfo">
 				<th>No</th>
-				<th>Статус</th>
+				<!-- <th>Статус</th> -->
 				<th>Check In</th>
 				<th>Check Out</th>
 				<th>Days</th>
@@ -37,92 +74,76 @@
 				<th>Tel</th>
 				<th>Vaucher</th>
 				<th>Food</th>
-				<th>Bill</th>
-			</tr>
+				<th id="res_total"></th>
 		</thead>
-		<tbody>
-			{% for d in fdb_reservations %}
-				<tr class="show_more">
-					<td class="tabletd, info" data-id='{{ d[0] }}'>{{ d[0] }} </td>
-					<td class="tabletd res_status">{{ d[11] }}</td>
-					<td class="tabletd">{{ d[1] }}</td>
-					<td class="tabletd">{{ d[2] }}</td>
-					<td class="tabletd">{{ d[3] }}</td>
-					<td class="tabletd">{{ d[4] }}</td>
-					<td class="tabletd">{{ d[5] }}</td>
-					<td class="tabletd">{{ d[6] }}</td>
-					<td class="tabletd">{{ d[7] }}</td>
-					<td class="tabletd">{{ d[8] }}</td>
-					<td class="tabletd">{{ d[9] }}</td>
-					<td class="tabletd count_me">{{ "%.2f"|format(d[10]) }}</td>
-				</tr>
-			{% endfor %}
-			<thead>
-			<tr class="tableinfo">
-				<th>No</th>
-				<th>Статус</th>
-				<th>Check In</th>
-				<th>Check Out</th>
-				<th>Days</th>
-				<th>Rooms</th>
-				<th>Contract</th>
-				<th>FromWho</th>
-				<th>Tel</th>
-				<th>Vaucher</th>
-				<th>Food</th>
-				<th id="total"></th>
-			</thead>
-			</tr>
-		</tbody>
-	</table>
-	<br><hr><br>
+		</tr>
+	</tbody>
+</table>
+<br>
+<hr><br>
 
-	<table class="activenast">
-		{% for day, value in Result.items() %}
-			<tr class="tableinfo">
-			<td>{{ day }}</td><td>Заети</td><td>Общо</td><td>За заемане</td>
-			</tr>
-			{% for v in value %}
-				<tr><td>{{ v[0] }}</td><td>{{ v[1] }}</td><td>{{ v[2] }}</td><td>{{ v[2] - v[1] }}</td></tr>
-			{% endfor %}
-		{% endfor %}
-	</table>
+<table class="activenast">
+	{% for day, value in Result.items() %}
+	<tr class="tableinfo">
+		<td>{{ day }}</td>
+		<td>Заети</td>
+		<td>Общо</td>
+		<td>За заемане</td>
+	</tr>
+	{% for v in value %}
+	<tr>
+		<td>{{ v[0] }}</td>
+		<td>{{ v[1] }}</td>
+		<td>{{ v[2] }}</td>
+		<td>{{ v[2] - v[1] }}</td>
+	</tr>
+	{% endfor %}
+	{% endfor %}
+</table>
 
 
-	<div id="modal" class="modal">
-		<div class="modal-content">
-			<span class="closd">&times;</span>
-			<p id="smetka"></p>
-			<p id="detail_result"></p>
-		</div>
+<div id="modal" class="modal">
+	<div class="modal-content">
+		<span class="closd">&times;</span>
+		<p id="smetka"></p>
+		<p id="detail_result"></p>
 	</div>
+</div>
 
-	<script>
-		let status_room = document.getElementsByClassName("res_status");
-		for (let i of status_room) {
-			if (i.innerHTML.trim() == 'Потвърдена') {
-				i.parentNode.classList.add('reservation_ok')
-			} else if (i.innerHTML.trim() == 'Непотвърдена'){
-				i.parentNode.classList.add('dirty_room')
-			} 
+<script>
+	let status_room = document.getElementsByClassName("res_status");
+	for (let i of status_room) {
+		if (i.innerHTML.trim() == 'Потвърдена') {
+			i.parentNode.classList.add('reservation_ok')
+		} else if (i.innerHTML.trim() == 'Непотвърдена') {
+			i.parentNode.classList.add('dirty_room')
 		}
+	}
 
-		$(function() {
-			$("#example2").dataTable({
-            	"paging": false,
-        	})
-			let TotalValue = 0.00;
+	$(function () {
+		let br_total = document.getElementById("res_total")
+		$('#example2').DataTable({
+			"paging": false,
+            "footerCallback": function (row, data, start, end, display) {
+                total = this.api()
+                    .column(10, {filter:'applied'})
+                    .data()
+                    .reduce(function (a, b) {
+                        return parseFloat(a) + parseFloat(b);
+                    }, 0);
+				br_total.innerHTML = total.toFixed(2)
+            }
+        })
 
-			$("tr .count_me").each(function(index,value){
-			currentRow = parseFloat($(this).text());
-			TotalValue += currentRow
-			});
+		// let TotalValue = 0.00;
 
-			document.getElementById('total').innerHTML = TotalValue.toFixed(2)
+		// $("tr .count_me").each(function (index, value) {
+		// 	currentRow = parseFloat($(this).text());
+		// 	TotalValue += currentRow
+		// });
 
-			$(".example").dataTable({
-            "paging": false,
-        });
+		// document.getElementById('total').innerHTML = TotalValue.toFixed(2)
+
 
 		$('.info').on('click', function () {
 			const id = $(this).data('id')
@@ -135,7 +156,6 @@
 				type: 'GET',
 				success: function (response) {
 					const data = response
-					console.log(data);
 					result.append(`
 						<table class='activenast'>
 							<thead>
@@ -169,6 +189,6 @@
 			$('#modal').css('display', 'none')
 		})
 
-		});
-	</script>
+	});
+</script>
 {% endblock %}

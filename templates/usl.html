@@ -1,86 +1,144 @@
 {% extends 'base.html' %}
+{% block css %}
+<style>
+	.dataTables_filter {
+		float: left !important;
+	}
+
+	.reservation_ok {
+		background-color: #DAE9BC !important;
+	}
+
+	.occupancy {
+		background-color: lightpink !important;
+	}
+
+	.dirty_room {
+		background-color: lightgray !important;
+	}
+</style>
+{% endblock css %}
+{% block js %}
+<script src="https://cdn.datatables.net/plug-ins/1.10.19/api/sum().js"></script>
+{% endblock js %}
 
 {% block body %}
-	<script>
-		document.getElementById("generalform").style.display="none";
-	</script>
-	<h3>Списък с платените услуги: {{ strptime(f_data, "%Y-%m-%d").strftime("%d.%m.%Y") }} до {{ strptime(l_data, "%Y-%m-%d").strftime("%d.%m.%Y") }}</h3>
-	<br />
-	<table class="activenast">
+<script>
+	document.getElementById("generalform").style.display = "none";
+</script>
+<h3>Списък с платените услуги: {{ strptime(f_data, "%Y-%m-%d").strftime("%d.%m.%Y") }} до {{ strptime(l_data,
+	"%Y-%m-%d").strftime("%d.%m.%Y") }}</h3>
+<br />
+{% if fdb_reservations_paid %}
+<table class="activenast" id="example2" style="width:100%">
+	<thead>
 		<tr class="tableinfo">
 			<th>Име</th>
+			<th>Вид плащане</th>
 			<th>Сума Бруто</th>
 			<th>Сума Нето</th>
-		{% for d in fdb_reservations_paid %}
-			<tr>
-				<td class="tabletd">{{ d[0] }}</td>
-				<td class="tabletd pay_bruto">{{ "%.2f"|format(d[1]|float) }}</td>
-				<td class="tabletd pay_neto">{{ "%.2f"|format(d[2]|float) }}</td>
-			</tr>
-		{% endfor %}
-			<tr class="tableinfo">
-				<th>Име</th>
-				<th id="pay_bruto">Сума Бруто</th>
-				<th id="pay_neto">Сума Нето</th>
-			</tr>
-	</table>
-	<h3>Списък с начислените услуги: {{ strptime(f_data, "%Y-%m-%d").strftime("%d.%m.%Y") }} до {{ strptime(l_data, "%Y-%m-%d").strftime("%d.%m.%Y") }}</h3>
-	<br />
-	<table class="activenast">
-		<tr class="tableinfo">
-			<th>Име</th>
-			<th>Сума Бруто</th>
-			<th>Сума Нето</th>
-		{% for d in fdb_reservations_accured %}
-			<tr>
-				<td class="tabletd">{{ d[0] }}</td>
-				<td class="tabletd nal_bruto">{{ "%.2f"|format(d[1]|float) }}</td>
-				<td class="tabletd nal_neto">{{ "%.2f"|format(d[2]|float) }}</td>
-			</tr>
-		{% endfor %}
-		<tr class="tableinfo">
-			<th>Име</th>
-			<th id="nal_bruto">Сума Бруто</th>
-			<th id="nal_neto">Сума Нето</th>
 		</tr>
-	</table>
+	</thead>
+	<tbody>
+		{% for d in fdb_reservations_paid %}
+		<tr>
+			<td class="tabletd">{{ d[0] }}</td>
+			<td class="tabletd">{{ d[1] }}</td>
+			<td class="tabletd pay_bruto">{{ "%.2f"|format(d[2]|float) }}
+			</td>
+			<td class="tabletd pay_neto">{{ "%.2f"|format(d[3]|float) }}</td>
+		</tr>
+		{% endfor %}
+	</tbody>
+	<thead>
+		<tr class="tableinfo">
+			<th>Име</th>
+			<th>Вид плащане</th>
+			<th id="pay_bruto">Сума Бруто</th>
+			<th id="pay_neto">Сума Нето</th>
+		</tr>
+	</thead>
+</table>
 
-	<script>
+{% endif %}
 
+<h3>Списък с начислените услуги: {{ strptime(f_data, "%Y-%m-%d").strftime("%d.%m.%Y") }} до {{ strptime(l_data,
+	"%Y-%m-%d").strftime("%d.%m.%Y") }}</h3>
+<br />
+<table class="activenast">
+	<tr class="tableinfo">
+		<th>Име</th>
+		<th>Сума Бруто</th>
+		<th>Сума Нето</th>
+		{% for d in fdb_reservations_accured %}
+	<tr>
+		<td class="tabletd">{{ d[0] }}</td>
+		<td class="tabletd nal_bruto">{{ "%.2f"|format(d[1]|float) }}</td>
+		<td class="tabletd nal_neto">{{ "%.2f"|format(d[2]|float) }}</td>
+	</tr>
+	{% endfor %}
+	<tr class="tableinfo">
+		<th>Име</th>
+		<th id="nal_bruto">Сума Бруто</th>
+		<th id="nal_neto">Сума Нето</th>
+	</tr>
+</table>
 
-		$(function() {
+<script>
+	$(function () {
+		let TotalValue = 0.00;
+		let TotalNeto = 0.00;
+		let TotalNalBruto = 0.00;
+		let TotalNalNeto = 0.00;
 
-			let TotalValue = 0.00;
-			let TotalNeto = 0.00;
-			let TotalNalBruto = 0.00;
-			let TotalNalNeto = 0.00;
+		// $("tr .pay_bruto").each(function (index, value) {
+		// 	currentRow = parseFloat($(this).text());
+		// 	TotalValue += currentRow
+		// });
 
-			$("tr .pay_bruto").each(function(index,value){
-			currentRow = parseFloat($(this).text());
-			TotalValue += currentRow
-			});
+		// $("tr .pay_neto").each(function (index, value) {
+		// 	currentRow2 = parseFloat($(this).text());
+		// 	TotalNeto += currentRow2
+		// });
 
-			$("tr .pay_neto").each(function(index,value){
-			currentRow2 = parseFloat($(this).text());
-			TotalNeto += currentRow2
-			});
-
-			$("tr .nal_bruto").each(function(index,value){
+		$("tr .nal_bruto").each(function (index, value) {
 			currentRow3 = parseFloat($(this).text());
 			TotalNalBruto += currentRow3
-			});
+		});
 
-			$("tr .nal_neto").each(function(index,value){
+		$("tr .nal_neto").each(function (index, value) {
 			currentRow4 = parseFloat($(this).text());
 			TotalNalNeto += currentRow4
-			});
-
-
-			document.getElementById('pay_bruto').innerHTML = TotalValue.toFixed(2)
-			document.getElementById('pay_neto').innerHTML = TotalNeto.toFixed(2)
-			document.getElementById('nal_bruto').innerHTML = TotalNalBruto.toFixed(2)
-			document.getElementById('nal_neto').innerHTML = TotalNalNeto.toFixed(2)
-
 		});
-	</script>
+
+
+		// document.getElementById('pay_bruto').innerHTML = TotalValue.toFixed(2)
+		//document.getElementById('pay_neto').innerHTML = TotalNeto.toFixed(2)
+		document.getElementById('nal_bruto').innerHTML = TotalNalBruto.toFixed(2)
+		document.getElementById('nal_neto').innerHTML = TotalNalNeto.toFixed(2)
+		let br_total = document.getElementById("pay_bruto")
+		let neto_total = document.getElementById("pay_neto")
+
+		$('#example2').DataTable({
+			"paging": false,
+            "footerCallback": function (row, data, start, end, display) {
+                total = this.api()
+                    .column(2, {filter:'applied'})
+                    .data()
+                    .reduce(function (a, b) {
+                        return parseFloat(a) + parseFloat(b);
+                    }, 0);
+				total_neto = this.api()
+                    .column(3, {filter:'applied'})
+                    .data()
+                    .reduce(function (a, b) {
+                        return parseFloat(a) + parseFloat(b);
+                    }, 0);
+				br_total.innerHTML = total.toFixed(2)
+				neto_total.innerHTML = total_neto.toFixed(2)
+            }
+        })
+
+	})
+</script>
 {% endblock %}

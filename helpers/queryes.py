@@ -103,6 +103,7 @@ queryes = {
             end
             when SMETKI_EL.PRICE_ID is null then 'Търговски обект'
             end,
+            pay_tip.name_cyr,
             sum(smt_pay_node.SUMA),
             sum(smt_pay_node.SUMA/(dds_stavka.dds/100+1))
             from PAYMENT_EL
@@ -120,8 +121,8 @@ queryes = {
             where (OPR.OPR_TIP_ID = '9' or OPR.OPR_TIP_ID = '6') and
             cast(OPR.DATE_TIME as date) between ? and ? and
             PAYMENT_EL.ID = SMT_PAY_NODE.PAYMENT_EL_ID
-            group by 1
-            order by 1
+            group by 1, 2
+            order by 1,2
             """,
     'usl_accuired': """
             select
