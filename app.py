@@ -28,7 +28,7 @@ context = {"now": int(time.time()), "strftime": time.strftime, "strptime": datet
 
 # Configure app and config
 app = Flask(__name__)
-app.config["SECRET_KEY"] = "Bork@"
+app.config["SECRET_KEY"] = os.getenv('SECRET_PASSWORD_FOR_FLASK')
 
 # Some staff used for card reservation
 
@@ -71,8 +71,8 @@ def login():
     user_credential.update(request.form["username"].encode("utf-8"))
     password_credential.update(request.form["password"].encode("utf-8"))
     if (
-        user_credential.hexdigest() == "694f9239193cd42447a703b48e6759b6c9917587064798bb14ad020a3b3b8539"
-        and password_credential.hexdigest() == "694f9239193cd42447a703b48e6759b6c9917587064798bb14ad020a3b3b8539"
+        user_credential.hexdigest() == os.getenv('USER_LOGIN_HASH')
+        and password_credential.hexdigest() == os.getenv('PASSWORD_LOGIN_HASH')
     ):
         session.permanent = False
         session["logged_in"] = True
@@ -606,4 +606,4 @@ def nutrition():
 
 
 if __name__ == "__main__":
-    app.run(ssl_context=("cert.pem", "key.pem"), host="0.0.0.0", debug=False)
+    app.run(ssl_context=("cert.pem", "key.pem"), host="0.0.0.0", debug=True)

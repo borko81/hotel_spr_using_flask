@@ -1,6 +1,12 @@
 import fdb
+import os
 
-database = {"host": "PATH", "database": "DATABASE", "user": "SYSDBA", "password": "MASTERKEY"}
+database = {
+    "host": f"{os.getenv('PATH_TO_BASE')}",
+    "database": f"{os.getenv('DATABASE_ALIAS')}",
+    "user": f"{os.getenv('DATABASE_USERNAME')}",
+    "password": f"{os.getenv('DATABASE_PASSWORD')}"
+}
 
 
 def con_to_firebird(query, *args):
