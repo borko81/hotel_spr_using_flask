@@ -42,32 +42,59 @@ queryes = {
         group by usl.name_cyr
         """,
     'list_with_reservations': """
+            with table_one as (
             select
-            nast.reserve_id as res_id,
-            nast.check_in_date as check_in,
-            dateadd(nast.days day to nast.check_in_date) as check_out,
-            nast.days as days,
-            List(distinct(rooms.name)) as rooms,
-            dogovori.name_cyr as dogovor,
-            reserve.fromwho as fromwho,
-            reserve.tel as telephone,
-            coalesce(nast.vaucher, '') as vauc,
-            coalesce(usl.name_cyr, '') as pans,
-            sum(smetki_el.kol * smetki_el.suma) as smetkata,
-            coalesce(reserve_type.name_cyr, 'Без статус')
-            from nast
-            inner join rooms on rooms.id = nast.room_id
-            inner join dogovori on dogovori.id = nast.dogovor_id
-            inner join reserve on reserve.id = nast.reserve_id
-            left join pansion on pansion.id = nast.pansion_id
-            left join usl on pansion.usl_id = usl.id
-            inner join smetki_el on smetki_el.nast_id = nast.id
-            left join reserve_type on reserve_type.id = reserve.reserve_type_id
-            where nast.check_in_date between ? and ?
-            and nast.last_opr_type not in (2, 4, 101)
-            and nast.is_deleted = 0
-            and NOT EXISTS(SELECT active_nast.nast_id from active_nast WHERE active_nast.nast_id = nast.id)
-            group by 1,2,3,4,6,7,8,9,10,12
+                    nast.reserve_id as res_id,
+                    nast.check_in_date as check_in,
+                    dateadd(nast.days day to nast.check_in_date) as check_out,
+                    nast.days as days,
+                    List(distinct(rooms.name)) as room,
+                    dogovori.name_cyr as dogovor,
+                    reserve.fromwho as fromwho,
+                    reserve.tel as telephone,
+                    coalesce(nast.vaucher, '') as vauc,
+                    coalesce(usl.name_cyr, '') as pans,
+                    sum(smetki_el.kol * smetki_el.suma) as smetkata,
+                    coalesce(reserve_type.name_cyr, '') stat,
+                    coalesce(nast.depozit_id, '') as depp
+                    from nast
+                    inner join rooms on rooms.id = nast.room_id
+                    inner join dogovori on dogovori.id = nast.dogovor_id
+                    inner join reserve on reserve.id = nast.reserve_id
+                    left join pansion on pansion.id = nast.pansion_id
+                    left join usl on pansion.usl_id = usl.id
+                    inner join smetki_el on smetki_el.nast_id = nast.id
+                    left join reserve_type on reserve_type.id = reserve.reserve_type_id
+                    where nast.check_in_date between ? and ?
+                    and nast.last_opr_type not in (2, 4, 101)
+                    and nast.is_deleted = 0
+                    and NOT EXISTS(SELECT active_nast.nast_id from active_nast WHERE active_nast.nast_id = nast.id)
+                    group by 1,2,3,4,6,7,8,9,10,12,13
+            )
+            select res_id,
+            LPAD(extract(day from check_in), 2, 0) || '.' || LPAD(extract(month from check_in), 2, 0) || '.' || LPAD(extract(year from check_in), 4, 0),
+            LPAD(extract(day from check_out), 2, 0) || '.' || LPAD(extract(month from check_out), 2, 0) || '.' || LPAD(extract(year from check_out), 4, 0),
+            days, room,  dogovor,  fromwho, telephone, vauc, pans, smetkata, stat,
+            case
+                when table_one.depp <> '' then (
+                select depozit.number from depozit where depozit.id = table_one.depp
+                )
+                else ''
+            end,
+            case
+                when table_one.depp <> '' then round(table_one.smetkata - (
+                select
+                SUM(IIF(OPR.OPR_TIP_ID = 10,ROUND(PAYMENT_EL.SUMA,2),0.00)) - SUM(IIF(OPR.OPR_TIP_ID IN (6,9,33),ROUND(PAYMENT_EL.SUMA,2),0.00)) as total
+                from payment_el
+                INNER JOIN SMETKA ON SMETKA.ID = PAYMENT_EL.SMETKA_ID
+                INNER JOIN OPR ON OPR.ID = SMETKA.OPR_ID
+                inner join depozit on depozit.id = payment_el.deposit_id
+                where NOT EXISTS (SELECT OPR_ANUL.OPR_ID FROM OPR_ANUL WHERE OPR_ANUL.AN_OPR_ID = SMETKA.OPR_ID)
+                and depozit.id = table_one.depp
+                ), 2)
+                else table_one.smetkata
+            end
+            from table_one
             """,
     'reservations_total_room_room_remain': """with table_one as
             (
