@@ -1,11 +1,12 @@
 import fdb
 import os
+from decouple import config
 
 database = {
-    "host": f"{os.getenv('PATH_TO_BASE')}",
-    "database": f"{os.getenv('DATABASE_ALIAS')}",
-    "user": f"{os.getenv('DATABASE_USERNAME')}",
-    "password": f"{os.getenv('DATABASE_PASSWORD')}"
+    "host": f"{config('PATH_TO_BASE')}",
+    "database": f"{config('DATABASE_ALIAS')}",
+    "user": f"{config('DATABASE_USERNAME')}",
+    "password": f"{config('DATABASE_PASSWORD')}"
 }
 
 

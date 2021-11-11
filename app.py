@@ -11,7 +11,7 @@ from datetime import timedelta, datetime
 import hashlib
 import logging
 import os
-
+from decouple import config
 # Import hekpers
 from helpers.helper import get_user_dates_or_return_today
 from helpers.queryes import queryes
@@ -28,7 +28,8 @@ context = {"now": int(time.time()), "strftime": time.strftime, "strptime": datet
 
 # Configure app and config
 app = Flask(__name__)
-app.config["SECRET_KEY"] = os.getenv('SECRET_PASSWORD_FOR_FLASK')
+app.config['SESSION_TYPE'] = 'memcached'
+app.config['SECRET_KEY'] = config('SUPER_SECRET')
 
 # Some staff used for card reservation
 
@@ -606,4 +607,4 @@ def nutrition():
 
 
 if __name__ == "__main__":
-    app.run(ssl_context=("cert.pem", "key.pem"), host="0.0.0.0", debug=True)
+    app.run(ssl_context=("cert.pem", "key.pem"), host="0.0.0.0", debug=False)
