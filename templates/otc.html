@@ -1,7 +1,8 @@
 {% extends 'base.html' %}
-{% block js %}
+{% block jsupper %}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.js"></script>
-{% endblock js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock jsupper %}
 {% block css %}
 <style>
     .dataTables_filter {
@@ -87,15 +88,16 @@
     
 
     new Chart("myChart", {
-    type: "line",
+    type: "bar",
     data: {
         labels: xValues,
         datasets: [{
         fill: false,
         lineTension: 0,
-        backgroundColor: "rgba(0,0,255,1.0)",
-        borderColor: "rgba(0,0,255,0.1)",
-        data: yValues
+        backgroundColor: 'rgb(255, 99, 132)',
+        borderColor: 'rgb(255, 99, 132)',
+        data: yValues,
+        label: 'Total'
         }]
     },
     options: {

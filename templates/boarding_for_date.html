@@ -16,7 +16,7 @@
 {% if breakfast_total['adult'] %}
     <h3>Закуска</h3>
     {% for values in food_for_day['breakfast'] %}
-        Стая: {{ values }} / <span>{{ food_for_day['breakfast'][values]['contract'] }}</span> / Възрастни: {{ food_for_day['breakfast'][values]['adult'] }}, Деца: {{ food_for_day['breakfast'][values]['child'] }} <br />
+        {{ values }} / <span>{{ food_for_day['breakfast'][values]['contract'] }}</span> / {{ food_for_day['breakfast'][values]['adult'] }} + {{ food_for_day['breakfast'][values]['child'] }} <br />
     {% endfor %}
     <b>Total: Възрастни {{ breakfast_total['adult'] }}, деца: {{ breakfast_total['child'] }}</b>
 {% endif %}
@@ -24,7 +24,7 @@
 {% if lunch_total['adult'] %}
     <h3>Обяд</h3>
     {% for values in food_for_day['lunch'] %}
-    Стая: {{ values }} / <span>{{ food_for_day['lunch'][values]['contract'] }}</span> / Възрастни: {{ food_for_day['lunch'][values]['adult'] }}, Деца: {{ food_for_day['lunch'][values]['child'] }} <br />
+    {{ values }} / <span>{{ food_for_day['lunch'][values]['contract'] }}</span> / {{ food_for_day['lunch'][values]['adult'] }} + {{ food_for_day['lunch'][values]['child'] }} <br />
     {% endfor %}
     <b>Total: Възрастни {{ lunch_total['adult'] }}, деца: {{ lunch_total['child'] }}</b>
 {% endif %}
@@ -32,7 +32,7 @@
 {% if dinner_total['adult'] %}
     <h3>Вечеря</h3>
     {% for values in food_for_day['dinner'] %}
-    Стая: {{ values }} / <span>{{ food_for_day['dinner'][values]['contract'] }}</span> / Възрастни: {{ food_for_day['dinner'][values]['adult'] }}, Деца: {{ food_for_day['dinner'][values]['child'] }} <br />
+    {{ values }} / <span>{{ food_for_day['dinner'][values]['contract'] }}</span> / {{ food_for_day['dinner'][values]['adult'] }} + {{ food_for_day['dinner'][values]['child'] }} <br />
     {% endfor %}
     <b>Total: Възрастни {{ dinner_total['adult'] }}, деца: {{ dinner_total['child'] }}</b>
 {% endif %}

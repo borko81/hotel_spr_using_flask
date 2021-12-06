@@ -432,7 +432,8 @@ queryes = {
             inner join dogovori on dogovori.id = depozit.dogovor_id
             inner join dds_stavka on dds_stavka.id = smetka.dds_id
             where NOT EXISTS (SELECT OPR_ANUL.OPR_ID FROM OPR_ANUL WHERE OPR_ANUL.AN_OPR_ID = SMETKA.OPR_ID)
-            group by 1, 2, 3, 4, 5""",
+            group by 1, 2, 3, 4, 5
+            """,
     'concrete_depozit_detail': """
             select
             depozit.id,
@@ -557,6 +558,7 @@ queryes = {
             and DATEADD(day,nast.days, nast.check_in_date)
             and nast.is_deleted = 0
             and nast.state = 0
+            and nast.last_opr_type != 101
             order by 1,2,4
     """,
     'price_change_info': """
