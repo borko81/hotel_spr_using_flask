@@ -417,34 +417,22 @@ queryes = {
             and nast_edit.old_price != nast_edit.new_price
             """,
     'depozits': """
-            with depozite as (
             select
-            distinct dep.deposit_id as d,
-            depozit.number as n,
-            dogovori.name_cyr as name_cyr,
-            depozit.name as dep_name,
-            dds_stavka.dds as dds,
-            SUM(IIF(OPR.OPR_TIP_ID = 10,ROUND(dep.SUMA,2),0.00)) as income,
-            SUM(IIF(OPR.OPR_TIP_ID IN (6,9,33),ROUND(dep.SUMA,2),0.00)) as outcome
-            from payment_el as dep
-            INNER JOIN SMETKA ON SMETKA.ID = dep.SMETKA_ID
+            distinct payment_el.deposit_id,
+            depozit.number,
+            dogovori.name_cyr,
+            depozit.name,
+            dds_stavka.dds,
+            SUM(IIF(OPR.OPR_TIP_ID = 10,ROUND(PAYMENT_EL.SUMA,2),0.00)) as income,
+            SUM(IIF(OPR.OPR_TIP_ID IN (6,9,33),ROUND(PAYMENT_EL.SUMA,2),0.00)) as outcome
+            from payment_el
+            INNER JOIN SMETKA ON SMETKA.ID = PAYMENT_EL.SMETKA_ID
             INNER JOIN OPR ON OPR.ID = SMETKA.OPR_ID
-            inner join depozit on depozit.id = dep.deposit_id
+            inner join depozit on depozit.id = payment_el.deposit_id
             inner join dogovori on dogovori.id = depozit.dogovor_id
             inner join dds_stavka on dds_stavka.id = smetka.dds_id
             where NOT EXISTS (SELECT OPR_ANUL.OPR_ID FROM OPR_ANUL WHERE OPR_ANUL.AN_OPR_ID = SMETKA.OPR_ID)
             group by 1, 2, 3, 4, 5
-            )
-            select
-            depozite.d,
-            depozite.n,
-            depozite.name_cyr,
-            depozite.dds,
-            depozite.dep_name,
-            depozite.income,
-            depozite.outcome,
-            depozite.income - depozite.outcome
-            from depozite
             """,
     'concrete_depozit_detail': """
             select

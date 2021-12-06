@@ -25,14 +25,14 @@
         </tr>
     </thead>
     <tbody>
-        {% for key, d in deposits.items() %}
+        {% for d in deposits %}
             <tr>
-                <td class="info" data-id='{{ key }}'>{{ d['number'] }} / {{ d['dds'] }}%</td>
-                <td>{{ d['contract'] }}</td>
-                <td>{{ d['from_who'] }}</td>   
-                <td>{{ "%.2f"|format(d['income']|float) }}</td>
-                <td>{{ "%.2f"|format(d['outcome']|float) }}</td>
-                <td>{{ "%.2f"|format(d['total']) }}</td>
+                <td class="info" data-id='{{ d[0] }}'>{{ d[1] }} / {{ d[3] }}%</td>
+                <td>{{ d[2] }}</td>
+                <td>{{ d[4] }}</td>   
+                <td>{{ "%.2f"|format(d[5]|float) }}</td>
+                <td>{{ "%.2f"|format(d[6]|float) }}</td>
+                <td>{{ "%.2f"|format(d[7]) }}</td>
             </tr>
         {% endfor %}
     </tbody>

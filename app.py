@@ -1,6 +1,6 @@
 # Import Flask module\s
 from flask import Flask, redirect, url_for, render_template, request, session, flash
-from firebird.connectfdb import con_to_firebird, con_to_firebird2
+from firebird.connectfdb import con_to_firebird, con_to_firebird2, con_to_firebird3
 
 # Import external module's
 from collections import defaultdict
@@ -12,6 +12,7 @@ import hashlib
 import logging
 import os
 from decouple import config
+
 # Import hekpers
 from helpers.helper import get_user_dates_or_return_today
 from helpers.queryes import queryes
@@ -24,12 +25,16 @@ logging.basicConfig(filename="logfilename.log", level=logging.DEBUG)
 
 
 # ПОЛЗВА СЕ ЗА ПРОМЯНА НА ДАТТА ПО НАШИЯ СТАНДАРТ, МОЖЕ ДА СЕ ДОБАВЯТ И ДРУГИ ФОРМАТИ
-context = {"now": int(time.time()), "strftime": time.strftime, "strptime": datetime.strptime}
+context = {
+    "now": int(time.time()),
+    "strftime": time.strftime,
+    "strptime": datetime.strptime,
+}
 
 # Configure app and config
 app = Flask(__name__)
-app.config['SESSION_TYPE'] = 'memcached'
-app.config['SECRET_KEY'] = config('SUPER_SECRET')
+app.config["SESSION_TYPE"] = "memcached"
+app.config["SECRET_KEY"] = config("SUPER_SECRET")
 
 # Some staff used for card reservation
 
@@ -61,7 +66,9 @@ def index():
     if not session.get("logged_in"):
         return render_template("login.html")
     else:
-        logging.info(f"[-] IP {request.remote_addr} try connect unSuccsessfully at {datetime.now()}")
+        logging.info(
+            f"[-] IP {request.remote_addr} try connect unSuccsessfully at {datetime.now()}"
+        )
         return redirect(url_for("info"))
 
 
@@ -71,16 +78,19 @@ def login():
     password_credential = hashlib.sha256()
     user_credential.update(request.form["username"].encode("utf-8"))
     password_credential.update(request.form["password"].encode("utf-8"))
-    if (
-        user_credential.hexdigest() == os.getenv('USER_LOGIN_HASH')
-        and password_credential.hexdigest() == os.getenv('PASSWORD_LOGIN_HASH')
-    ):
+    if user_credential.hexdigest() == os.getenv(
+        "USER_LOGIN_HASH"
+    ) and password_credential.hexdigest() == os.getenv("PASSWORD_LOGIN_HASH"):
         session.permanent = False
         session["logged_in"] = True
-        logging.info(f"[+] IP {request.remote_addr} connect Succsessfully at {datetime.now()}")
+        logging.info(
+            f"[+] IP {request.remote_addr} connect Succsessfully at {datetime.now()}"
+        )
         return redirect(url_for("housekeeping"))
     else:
-        logging.info(f"IP {request.remote_addr} try connect unSuccsessfully at {datetime.now()}")
+        logging.info(
+            f"IP {request.remote_addr} try connect unSuccsessfully at {datetime.now()}"
+        )
         flash("wrong autentication")
         return index()
 
@@ -98,7 +108,9 @@ def info():
     action = "/info"
     query = queryes["active_nast"]
     fdb_data = con_to_firebird(query)
-    return render_template("index.html", action=action, fdb_data=fdb_data, title="гости", **context)
+    return render_template(
+        "index.html", action=action, fdb_data=fdb_data, title="гости", **context
+    )
 
 
 @app.route("/info/<int:guest_id>")
@@ -133,7 +145,9 @@ def reservations():
         # End of perp zaetos
         f_data, l_data = get_user_dates_or_return_today()
 
-        dates = datetime.strptime(l_data, "%Y-%m-%d") - datetime.strptime(f_data, "%Y-%m-%d")
+        dates = datetime.strptime(l_data, "%Y-%m-%d") - datetime.strptime(
+            f_data, "%Y-%m-%d"
+        )
         for i in range(dates.days + 1):
             day = datetime.strptime(f_data, "%Y-%m-%d") + timedelta(days=i)
             for line in con_to_firebird(q, (str(day)[:-9], str(day)[:-9])):
@@ -163,7 +177,14 @@ def reservations():
 def reserve_people(id):
     query = queryes["reserve_people"]
     query_data = con_to_firebird(query, (id,))
-    result = {"id": id, "notes": "", "email": "", "people_adult": 0, "people_child": 0, "ref_no": ""}
+    result = {
+        "id": id,
+        "notes": "",
+        "email": "",
+        "people_adult": 0,
+        "people_child": 0,
+        "ref_no": "",
+    }
     for data in query_data:
         result["notes"] = data[1]
         result["email"] = data[2]
@@ -234,7 +255,12 @@ def room_landing():
             ),
         )
         return render_template(
-            "room_landing.html", f_data=f_data, l_data=l_data, title=title, fdb_room_landing=fdb_room_landing, **context
+            "room_landing.html",
+            f_data=f_data,
+            l_data=l_data,
+            title=title,
+            fdb_room_landing=fdb_room_landing,
+            **context,
         )
 
 
@@ -249,7 +275,11 @@ def payment():
         kasa_name = con_to_firebird(query_get_kasa_name)
         kasa_list = [i[0] for i in kasa_name]
         return render_template(
-            "payment.html", roomname=roomname, room_payment=room_payment, kasa_name=kasa_list, **context
+            "payment.html",
+            roomname=roomname,
+            room_payment=room_payment,
+            kasa_name=kasa_list,
+            **context,
         )
     else:
         return render_template("payment.html")
@@ -298,7 +328,12 @@ def fak():
             ),
         )
         return render_template(
-            "fak.html", f_data=f_data, l_data=l_data, title=title, fdb_fakturi=fdb_fakturi, **context
+            "fak.html",
+            f_data=f_data,
+            l_data=l_data,
+            title=title,
+            fdb_fakturi=fdb_fakturi,
+            **context,
         )
 
 
@@ -400,7 +435,9 @@ def reservations_card():
         data[room].append({"id": id_house, "in": in_house, "out": out})
 
     rooms = con_to_firebird(query_rooms_names)
-    return render_template("reservations_card.html", rooms=rooms, dates=generate_dates_range(), data=data)
+    return render_template(
+        "reservations_card.html", rooms=rooms, dates=generate_dates_range(), data=data
+    )
 
 
 @app.route("/price_change", methods=["GET", "POST"])
@@ -442,20 +479,25 @@ def depozit():
     query = queryes["depozits"]
     deposits = {}
 
-    result = con_to_firebird(query=query)
-    for line in result:
-        if line[0] not in deposits:
-            deposits[line[0]] = {
-                "number": line[1],
-                "contract": line[2],
-                "from_who": line[3],
-                "dds": line[4],
-                "income": line[5],
-                "outcome": line[6],
-                "total": line[5] - line[6],
-            }
+    def generate_yiald():
+        for line in result:
+            yield line
 
-    return render_template("depozit.html", deposits=deposits)
+    result = con_to_firebird(query=query)
+
+    # for line in result:
+    #     if line[0] not in deposits:
+    #         deposits[line[0]] = {
+    #             "number": line[1],
+    #             "contract": line[2],
+    #             "from_who": line[3],
+    #             "dds": line[4],
+    #             "income": line[5],
+    #             "outcome": line[6],
+    #             "total": line[7]
+    #         }
+
+    return render_template("depozit.html", deposits=generate_yiald())
 
 
 @app.route("/depozit_detail/<int:dep_id>")
@@ -535,7 +577,10 @@ def otc():
             otc[target]["TTT"] += line[5]
         elif line[4].strip() == "Усвоен депозит" and otc[target]["UsD"] != line[5]:
             otc[target]["UsD"] += line[5]
-        elif line[4].strip() == "Зареждане на аванс" and otc[target]["IncomeD"] != line[5]:
+        elif (
+            line[4].strip() == "Зареждане на аванс"
+            and otc[target]["IncomeD"] != line[5]
+        ):
             otc[target]["IncomeD"] += line[5]
 
     return render_template("otc.html", otc=otc, title=title, **context)
@@ -566,12 +611,18 @@ def nutrition():
         check_out = str(line[3])
         age = line[4]
         contract = line[5]
-        food = list(set(((line[7].strip() + "-" + line[8].strip()).lstrip("-")).split("-")))
+        food = list(
+            set(((line[7].strip() + "-" + line[8].strip()).lstrip("-")).split("-"))
+        )
         for f in food:
 
             if f == "Закуска" and not f_data == check_id:
                 if room not in food_for_day["breakfast"]:
-                    food_for_day["breakfast"][room] = {"adult": 0, "child": 0, "contract": contract}
+                    food_for_day["breakfast"][room] = {
+                        "adult": 0,
+                        "child": 0,
+                        "contract": contract,
+                    }
                 if age > 100:
                     food_for_day["breakfast"][room]["adult"] += 1
                     breakfast_total["adult"] += 1
@@ -581,7 +632,11 @@ def nutrition():
 
             elif f == "Вечеря" and not f_data == check_out:
                 if room not in food_for_day["dinner"]:
-                    food_for_day["dinner"][room] = {"adult": 0, "child": 0, "contract": contract}
+                    food_for_day["dinner"][room] = {
+                        "adult": 0,
+                        "child": 0,
+                        "contract": contract,
+                    }
                 if age > 100:
                     food_for_day["dinner"][room]["adult"] += 1
                     dinner_total["adult"] += 1
@@ -591,7 +646,11 @@ def nutrition():
 
             elif f == "Обяд":
                 if room not in food_for_day["lunch"]:
-                    food_for_day["lunch"][room] = {"adult": 0, "child": 0, "contract": contract}
+                    food_for_day["lunch"][room] = {
+                        "adult": 0,
+                        "child": 0,
+                        "contract": contract,
+                    }
                 if age > 100:
                     food_for_day["lunch"][room]["adult"] += 1
                     lunch_total["adult"] += 1
@@ -600,9 +659,12 @@ def nutrition():
                     lunch_total["child"] += 1
 
     return render_template(
-        "boarding_for_date.html", food_for_day=food_for_day, f_data=f_data,
-        breakfast_total=breakfast_total, lunch_total=lunch_total,
-        dinner_total=dinner_total
+        "boarding_for_date.html",
+        food_for_day=food_for_day,
+        f_data=f_data,
+        breakfast_total=breakfast_total,
+        lunch_total=lunch_total,
+        dinner_total=dinner_total,
     )
 
 

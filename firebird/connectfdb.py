@@ -1,12 +1,11 @@
 import fdb
-import os
 from decouple import config
 
 database = {
     "host": f"{config('PATH_TO_BASE')}",
     "database": f"{config('DATABASE_ALIAS')}",
     "user": f"{config('DATABASE_USERNAME')}",
-    "password": f"{config('DATABASE_PASSWORD')}"
+    "password": f"{config('DATABASE_PASSWORD')}",
 }
 
 
@@ -41,7 +40,7 @@ def con_to_firebird3(query, *args):
     try:
         cur.execute(query, *args)
         while True:
-            rows = cur.fetchmany(100)
+            rows = cur.fetchmany(500)
             if not rows:
                 break
             for line in rows:
