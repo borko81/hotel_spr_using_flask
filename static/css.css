@@ -1,13 +1,13 @@
 * {
-	font-family: "Helvetica Neue", Arial, sans-serif;
+	font-family: Open Sans;
 
 }
 
 .myalert-danger {
 	background-color: lightcoral; /* Red */
 	display: block;
-	margin: 15px auto;
-	width: 50%;
+	margin: auto;
+	width: 80%;
 	opacity: 1; 
 	list-style-type: none;
 	text-align: center;
@@ -131,6 +131,13 @@ nav ul a {
 	border-collapse: collapse;
 }
 
+.bigtext {
+	max-width: 240px;
+	width:240px;
+	height: auto;
+	overflow-wrap: break-word;
+}
+
 .activenast td, th {
 	border: 1px solid #ddd;
 	padding: 5px;
@@ -229,13 +236,27 @@ nav ul a {
 }
 
 #login-div {
-	position: absolute;
-	top: calc(20% - 10%);
-	left: 50%;
-	-webkit-transform: translate(-50%, -50%);
-	width: 50%;
-	z-index: 5;
-	-webkit-transition: all .3s ease;
+	max-width: 400px;
+	margin: 10% auto;
+	background:#fefefd;
+	box-shadow: 0 10px 10px #222
+}
+#login-div form fieldset {
+	border: 0 none;
+    margin: 0;
+    padding: 20px;
+}
+#login-div form legend, #login-div form fieldset input {
+	font-family: Open Sans;
+	font-size:15px;
+}
+#login-div form legend {
+	background-color: orange;
+    border-top: 0 none;
+    color: white;
+    display: table-cell;
+    padding: 10px 20px;
+    width: auto;
 }
 
 .form-css {
@@ -255,7 +276,6 @@ nav ul a {
 	background-color: rgba(0,0,0,0.4);
 	color: rgba(256,256,256,0.7);
 	border:0;
-	border-radius: 15px;
 	display: block;
 	margin: 15px auto; 
 	padding: 15px 45px;

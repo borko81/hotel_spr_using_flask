@@ -91,7 +91,7 @@ def login():
         logging.info(
             f"IP {request.remote_addr} try connect unSuccsessfully at {datetime.now()}"
         )
-        flash("wrong autentication")
+        flash("wrong authentication")
         return index()
 
 

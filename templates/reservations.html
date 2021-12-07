@@ -31,7 +31,7 @@
 	<thead>
 		<tr class="tableinfo">
 			<th>No</th>
-			<th>Room</th>
+			<th class="bigtext">Room</th>
 			<th>Ch.In</th>
 			<th>Ch.Out</th>
 			<th>Days</th>
@@ -43,16 +43,14 @@
 			<th>Depozite</th>
 			<th>Food</th>
 			<th>Vaucher</th>
-
-
-			<th>Статус</th>
+			<th style="display:none">Статус</th>
 		</tr>
 	</thead>
 	<tbody>
 		{% for d in fdb_reservations %}
 		<tr class="show_more">
 			<td class="tabletd, info" data-id='{{ d[0] }}'>{{ d[0] }} </td>
-			<td class="tabletd">{{ d[4] }}</td>
+			<td class="tabletd bigtext" alt="{{ d[4] }}">{{ d[4] }}</td>
 			<td class="tabletd">{{ d[1] }}</td>
 			<td class="tabletd">{{ d[2] }}</td>
 			<td class="tabletd">{{ d[3] }}</td>
@@ -65,8 +63,7 @@
 			<td class="tabletd">{{ d[9] }}</td>
 			<td class="tabletd">{{ d[8] }}</td>
 
-
-			<td class="tabletd res_status">{{ d[11] }}</td>
+			<td class="tabletd res_status" style="display:none">{{ d[11] }}</td>
 		</tr>
 		{% endfor %}
 		<thead>
@@ -84,7 +81,7 @@
 				<th>Food</th>
 				<th>Vaucher</th>
 
-				<th>Статус</th>
+				<th style="display:none">Статус</th>
 		</thead>
 		</tr>
 	</tbody>
